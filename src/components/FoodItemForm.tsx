@@ -4,6 +4,8 @@ import { useSettingsStore } from '../store/settingsStore'
 import { gToOz, ozToG } from '../utils/nutrition'
 import type { FoodItem, WeightUnit } from '../types'
 import { FdcSearch } from './FdcSearch'
+import { NutritionScanner } from './NutritionScanner'
+import type { ParsedNutrition } from '../utils/parseNutritionLabel'
 
 interface Props {
   item?: FoodItem
@@ -51,6 +53,25 @@ export function FoodItemForm({ item, onClose }: Props) {
   const { weightUnit } = useSettingsStore()
   const [form, setForm] = useState<FormState>(() => initialState(item, weightUnit))
   const [error, setError] = useState('')
+
+  function handleScan(data: ParsedNutrition) {
+    setForm(prev => {
+      const next = { ...prev }
+      if (data.calories != null) next.calories = String(data.calories)
+      if (data.fat != null) next.fat = String(data.fat)
+      if (data.carbs != null) next.carbs = String(data.carbs)
+      if (data.fiber != null) next.fiber = String(data.fiber)
+      if (data.protein != null) next.protein = String(data.protein)
+      if (data.sodium != null) next.sodium = String(data.sodium)
+      if (data.servingSizeG != null) {
+        next.servingAmount = weightUnit === 'oz'
+          ? gToOz(data.servingSizeG).toFixed(2)
+          : data.servingSizeG.toFixed(1)
+        next.servingUnit = weightUnit
+      }
+      return next
+    })
+  }
 
   function handleFdcSelect(food: Omit<FoodItem, 'id'>) {
     const servingAmount = weightUnit === 'oz'
@@ -134,6 +155,12 @@ export function FoodItemForm({ item, onClose }: Props) {
             {!item && (
               <>
                 <FdcSearch onSelect={handleFdcSelect} />
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 border-t border-gray-200" />
+                  <span className="text-xs text-gray-400">or</span>
+                  <div className="flex-1 border-t border-gray-200" />
+                </div>
+                <NutritionScanner onScan={handleScan} />
                 <div className="flex items-center gap-3">
                   <div className="flex-1 border-t border-gray-200" />
                   <span className="text-xs text-gray-400">or enter manually</span>
