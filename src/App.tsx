@@ -7,6 +7,7 @@ import { RecipeEditor } from './pages/RecipeEditor'
 import { TripList } from './pages/TripList'
 import { TripNew } from './pages/TripNew'
 import { TripEditor } from './pages/TripEditor'
+import { About } from './pages/About'
 
 function App() {
   const { weightUnit, setWeightUnit } = useSettingsStore()
@@ -15,7 +16,7 @@ function App() {
     isActive ? 'text-brand-600 font-medium' : 'text-gray-600 hover:text-gray-900'
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <nav className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between print:hidden">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <img src="/logo.svg" alt="" className="h-8 w-8" />
@@ -34,7 +35,7 @@ function App() {
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/food" element={<FoodLibrary />} />
@@ -44,8 +45,13 @@ function App() {
           <Route path="/trips" element={<TripList />} />
           <Route path="/trips/new" element={<TripNew />} />
           <Route path="/trips/:id" element={<TripEditor />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </main>
+
+      <footer className="print:hidden border-t border-gray-200 mt-8 py-4 px-4 text-center text-xs text-gray-400">
+        <Link to="/about" className="hover:text-gray-600">About</Link>
+      </footer>
     </div>
   )
 }
