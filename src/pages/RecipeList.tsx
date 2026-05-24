@@ -29,7 +29,7 @@ export function RecipeList() {
         <h1 className="text-2xl font-semibold text-gray-900">Recipes</h1>
         <Link
           to="/recipes/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
         >
           + New recipe
         </Link>
@@ -38,7 +38,7 @@ export function RecipeList() {
       {recipes && recipes.length === 0 && (
         <div className="py-16 text-center text-gray-400 text-sm">
           No recipes yet.{' '}
-          <Link to="/recipes/new" className="text-blue-600 hover:underline">
+          <Link to="/recipes/new" className="text-brand-600 hover:underline">
             Create your first recipe.
           </Link>
         </div>
@@ -63,7 +63,7 @@ export function RecipeList() {
                 <div className="flex gap-3 text-sm shrink-0">
                   <Link
                     to={`/recipes/${recipe.id}`}
-                    className="text-gray-400 hover:text-blue-600"
+                    className="text-gray-400 hover:text-brand-600"
                   >
                     Edit
                   </Link>

@@ -154,7 +154,7 @@ export function TripEditor() {
       return (
         <div className="py-16 text-center text-gray-400 text-sm">
           Trip not found.{' '}
-          <Link to="/trips" className="text-blue-600 hover:underline">Back to trips</Link>
+          <Link to="/trips" className="text-brand-600 hover:underline">Back to trips</Link>
         </div>
       )
     }
@@ -178,7 +178,7 @@ export function TripEditor() {
             <input
               value={state.name}
               onChange={e => dispatch({ type: 'SET_NAME', name: e.target.value })}
-              className="text-xl font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-0 py-0.5 min-w-0"
+              className="text-xl font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-brand-600 focus:outline-none px-0 py-0.5 min-w-0"
             />
           </div>
           <div className="flex items-center gap-2 shrink-0 pt-1">
@@ -202,8 +202,8 @@ export function TripEditor() {
 
         {/* Trip totals */}
         {tripTotals.calories > 0 && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5">
-            <p className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-1">
+          <div className="bg-brand-50 border border-brand-100 rounded-xl px-4 py-3 mb-5">
+            <p className="text-xs font-medium text-brand-600 uppercase tracking-wide mb-1">
               Trip total — {state.days.length} day{state.days.length !== 1 ? 's' : ''}
             </p>
             <NutritionSummary totals={tripTotals} weightUnit={weightUnit} />
@@ -218,7 +218,7 @@ export function TripEditor() {
               onClick={() => setActiveDay(i)}
               className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 i === activeDay
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-brand-600 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -227,7 +227,7 @@ export function TripEditor() {
           ))}
           <button
             onClick={() => { dispatch({ type: 'ADD_DAY' }); setActiveDay(state.days.length) }}
-            className="shrink-0 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+            className="shrink-0 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-brand-600 hover:bg-brand-50"
             title="Add day"
           >
             + Day

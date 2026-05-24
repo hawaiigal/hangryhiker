@@ -116,7 +116,7 @@ export function FoodItemForm({ item, onClose }: Props) {
     onClose()
   }
 
-  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600'
   const labelCls = 'block text-sm font-medium text-gray-700 mb-1'
 
   return (
@@ -217,7 +217,7 @@ export function FoodItemForm({ item, onClose }: Props) {
               </button>
               <button
                 type="submit"
-                className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700"
+                className="flex-1 bg-brand-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-brand-700"
               >
                 {item ? 'Save changes' : 'Add food item'}
               </button>

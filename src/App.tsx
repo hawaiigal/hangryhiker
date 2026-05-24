@@ -11,7 +11,7 @@ function App() {
   const { weightUnit, setWeightUnit } = useSettingsStore()
 
   const navLink = ({ isActive }: { isActive: boolean }) =>
-    isActive ? 'text-blue-600 font-medium' : 'text-gray-600 hover:text-gray-900'
+    isActive ? 'text-brand-600 font-medium' : 'text-gray-600 hover:text-gray-900'
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -35,7 +35,7 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
   return (
     <span className="text-gray-500">
       {label}{' '}
-      <span className={highlight ? 'font-semibold text-blue-700' : 'font-medium text-gray-800'}>
+      <span className={highlight ? 'font-semibold text-brand-700' : 'font-medium text-gray-800'}>
         {value}
       </span>
     </span>

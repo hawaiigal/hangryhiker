@@ -72,7 +72,7 @@ export function FoodLibrary() {
         <h1 className="text-2xl font-semibold text-gray-900">Food Library</h1>
         <button
           onClick={() => setEditTarget(null)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
         >
           + Add food
         </button>
@@ -83,7 +83,7 @@ export function FoodLibrary() {
         placeholder="Search by name or brand..."
         value={search}
         onChange={e => setSearch(e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm mb-6 focus:outline-none focus:ring-2 focus:ring-brand-600"
       />
 
       <div className="overflow-x-auto">
@@ -125,7 +125,7 @@ export function FoodLibrary() {
                   {formatWeight(item.servingSizeG, weightUnit)}
                 </td>
                 <td className={tdCls}>{item.calories}</td>
-                <td className={`${tdCls} font-semibold text-blue-700 whitespace-nowrap`}>
+                <td className={`${tdCls} font-semibold text-brand-700 whitespace-nowrap`}>
                   {calDensity(item.calories, item.servingSizeG, weightUnit).toFixed(1)}
                 </td>
                 <td className={`${tdCls} hidden md:table-cell`}>{item.carbs}g</td>
@@ -136,7 +136,7 @@ export function FoodLibrary() {
                 <td className="py-3 text-sm whitespace-nowrap">
                   <button
                     onClick={() => setEditTarget(item)}
-                    className="text-gray-400 hover:text-blue-600 mr-3"
+                    className="text-gray-400 hover:text-brand-600 mr-3"
                   >
                     Edit
                   </button>

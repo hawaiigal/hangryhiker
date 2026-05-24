@@ -126,7 +126,7 @@ export function MealSection({
                     const v = parseFloat(e.target.value)
                     if (!isNaN(v) && v > 0) onSetServings(index, v)
                   }}
-                  className="w-12 text-center border border-gray-300 rounded px-1 py-0.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-12 text-center border border-gray-300 rounded px-1 py-0.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-600"
                 />
                 <button
                   type="button"
@@ -159,7 +159,7 @@ export function MealSection({
               noLibrary ? 'Add food items to your library first' : `Add to ${mealType}...`
             }
             disabled={noLibrary}
-            className="w-full border border-dashed border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-solid disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full border border-dashed border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-solid disabled:opacity-50 disabled:cursor-not-allowed"
           />
           {results.length > 0 && (
             <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 overflow-hidden">
@@ -168,7 +168,7 @@ export function MealSection({
                   key={i}
                   type="button"
                   onMouseDown={e => { e.preventDefault(); addResult(result) }}
-                  className="w-full text-left px-3 py-2 hover:bg-blue-50 flex items-center justify-between gap-3 text-sm border-b border-gray-100 last:border-0"
+                  className="w-full text-left px-3 py-2 hover:bg-brand-50 flex items-center justify-between gap-3 text-sm border-b border-gray-100 last:border-0"
                 >
                   <span className="flex items-center gap-1.5 min-w-0">
                     <span className="font-medium text-gray-900 truncate">
@@ -195,9 +195,9 @@ export function MealSection({
           {search.trim() && results.length === 0 && (
             <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow mt-1 px-3 py-2.5 text-sm text-gray-400">
               No matches —{' '}
-              <Link to="/" className="text-blue-600 hover:underline">add to library</Link>
+              <Link to="/" className="text-brand-600 hover:underline">add to library</Link>
               {' '}or{' '}
-              <Link to="/recipes/new" className="text-blue-600 hover:underline">create a recipe</Link>
+              <Link to="/recipes/new" className="text-brand-600 hover:underline">create a recipe</Link>
             </div>
           )}
         </div>

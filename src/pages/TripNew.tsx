@@ -23,7 +23,7 @@ export function TripNew() {
     navigate(`/trips/${id}`)
   }
 
-  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600'
 
   return (
     <div className="max-w-sm">
@@ -68,7 +68,7 @@ export function TripNew() {
           </Link>
           <button
             type="submit"
-            className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700"
+            className="flex-1 bg-brand-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-brand-700"
           >
             Create trip
           </button>

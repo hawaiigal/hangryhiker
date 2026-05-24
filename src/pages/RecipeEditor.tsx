@@ -100,7 +100,7 @@ export function RecipeEditor() {
   // Show nothing while loading an existing recipe
   if (!isNew && !initialized) return null
 
-  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600'
 
   return (
     <div className="max-w-2xl">
@@ -143,7 +143,7 @@ export function RecipeEditor() {
                   key={food.id}
                   type="button"
                   onClick={() => addIngredient(food)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-blue-50 flex items-center justify-between gap-4 text-sm border-b border-gray-100 last:border-0"
+                  className="w-full text-left px-4 py-2.5 hover:bg-brand-50 flex items-center justify-between gap-4 text-sm border-b border-gray-100 last:border-0"
                 >
                   <span>
                     <span className="font-medium text-gray-900">{food.name}</span>
@@ -159,7 +159,7 @@ export function RecipeEditor() {
           {search.trim() && searchResults.length === 0 && allFoodItems !== undefined && (
             <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 px-4 py-3 text-sm text-gray-400">
               No matching food items.{' '}
-              <Link to="/" className="text-blue-600 hover:underline">
+              <Link to="/" className="text-brand-600 hover:underline">
                 Add one to your food library.
               </Link>
             </div>
@@ -202,7 +202,7 @@ export function RecipeEditor() {
                       step="0.5"
                       value={quantity}
                       onChange={e => setQuantity(foodItemId, e.target.value)}
-                      className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                     />
                     <button
                       type="button"
@@ -251,7 +251,7 @@ export function RecipeEditor() {
         <button
           type="button"
           onClick={handleSave}
-          className="flex-1 bg-blue-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-blue-700"
+          className="flex-1 bg-brand-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-brand-700"
         >
           {isNew ? 'Save recipe' : 'Save changes'}
         </button>

@@ -67,7 +67,7 @@ export function FdcSearch({ onSelect }: Props) {
         value={query}
         onChange={e => setQuery(e.target.value)}
         placeholder="e.g. instant oatmeal, Clif Bar…"
-        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
       />
 
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
@@ -79,7 +79,7 @@ export function FdcSearch({ onSelect }: Props) {
               <button
                 type="button"
                 onClick={() => handleSelect(r)}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 truncate"
+                className="w-full text-left px-3 py-2 text-sm hover:bg-brand-50 truncate"
               >
                 {r.label}
               </button>
