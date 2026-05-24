@@ -195,7 +195,7 @@ export function MealSection({
           {search.trim() && results.length === 0 && (
             <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow mt-1 px-3 py-2.5 text-sm text-gray-400">
               No matches —{' '}
-              <Link to="/" className="text-brand-600 hover:underline">add to library</Link>
+              <Link to="/food" className="text-brand-600 hover:underline">add to library</Link>
               {' '}or{' '}
               <Link to="/recipes/new" className="text-brand-600 hover:underline">create a recipe</Link>
             </div>

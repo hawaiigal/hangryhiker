@@ -95,6 +95,8 @@ export function FoodItemForm({ item, onClose }: Props) {
       fiber: String(food.fiber),
       protein: String(food.protein),
       sodium: String(food.sodium),
+      servingsPerContainer: food.servingsPerContainer != null ? String(food.servingsPerContainer) : '',
+      addedSugars: food.addedSugars != null ? String(food.addedSugars) : '',
     })
   }
 
