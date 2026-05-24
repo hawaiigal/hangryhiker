@@ -2,11 +2,12 @@ import { useReducer, useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
-import { computeMealTotals, computeTripTotals, addTotals, emptyTotals } from '../utils/nutrition'
+import { computeMealTotals, computeTripTotals, addTotals, emptyTotals, formatWeight } from '../utils/nutrition'
 import { MEAL_TYPES, MEAL_LABELS, createEmptyDays } from '../utils/trip'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
 import { MealSection } from '../components/MealSection'
+import { buildTripExport, downloadTripExport } from '../utils/exportImport'
 import type { FoodItem, MealItem, MealType, NutritionTotals, Recipe, Trip, TripDay } from '../types'
 
 // ── Reducer ────────────────────────────────────────────────────────────────
@@ -142,6 +143,11 @@ export function TripEditor() {
     )
   }, [state, activeDay, foodMap, recipeMap, initialized])
 
+  async function handleExport() {
+    const data = await buildTripExport(Number(id))
+    downloadTripExport(data, state.name)
+  }
+
   // Loading / not-found guards (after all hooks)
   if (!initialized) {
     if (allFoodItems !== undefined && tripFromDb === undefined) {
@@ -160,106 +166,200 @@ export function TripEditor() {
   if (safeDay !== activeDay) setActiveDay(safeDay)
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <Link to="/trips" className="text-gray-400 hover:text-gray-600 text-sm shrink-0">
-            ← Trips
-          </Link>
-          <input
-            value={state.name}
-            onChange={e => dispatch({ type: 'SET_NAME', name: e.target.value })}
-            className="text-xl font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-0 py-0.5 min-w-0"
-          />
+    <>
+      {/* Screen view */}
+      <div className="print:hidden">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Link to="/trips" className="text-gray-400 hover:text-gray-600 text-sm shrink-0">
+              ← Trips
+            </Link>
+            <input
+              value={state.name}
+              onChange={e => dispatch({ type: 'SET_NAME', name: e.target.value })}
+              className="text-xl font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-0 py-0.5 min-w-0"
+            />
+          </div>
+          <div className="flex items-center gap-2 shrink-0 pt-1">
+            <button
+              onClick={handleExport}
+              className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1 rounded-lg"
+            >
+              Export JSON
+            </button>
+            <button
+              onClick={() => window.print()}
+              className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1 rounded-lg"
+            >
+              Print PDF
+            </button>
+            <span className="text-xs text-gray-400">
+              {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved ✓' : ''}
+            </span>
+          </div>
         </div>
-        <span className="text-xs text-gray-400 shrink-0 pt-1.5">
-          {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved ✓' : ''}
-        </span>
-      </div>
 
-      {/* Trip totals */}
-      {tripTotals.calories > 0 && (
-        <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5">
-          <p className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-1">
-            Trip total — {state.days.length} day{state.days.length !== 1 ? 's' : ''}
-          </p>
-          <NutritionSummary totals={tripTotals} weightUnit={weightUnit} />
-        </div>
-      )}
+        {/* Trip totals */}
+        {tripTotals.calories > 0 && (
+          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5">
+            <p className="text-xs font-medium text-blue-400 uppercase tracking-wide mb-1">
+              Trip total — {state.days.length} day{state.days.length !== 1 ? 's' : ''}
+            </p>
+            <NutritionSummary totals={tripTotals} weightUnit={weightUnit} />
+          </div>
+        )}
 
-      {/* Day tabs */}
-      <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-        {state.days.map((day, i) => (
+        {/* Day tabs */}
+        <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+          {state.days.map((day, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveDay(i)}
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                i === activeDay
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {day.date}
+            </button>
+          ))}
           <button
-            key={i}
-            onClick={() => setActiveDay(i)}
-            className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              i === activeDay
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+            onClick={() => { dispatch({ type: 'ADD_DAY' }); setActiveDay(state.days.length) }}
+            className="shrink-0 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+            title="Add day"
           >
-            {day.date}
+            + Day
           </button>
-        ))}
-        <button
-          onClick={() => { dispatch({ type: 'ADD_DAY' }); setActiveDay(state.days.length) }}
-          className="shrink-0 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-blue-600 hover:bg-blue-50"
-          title="Add day"
-        >
-          + Day
-        </button>
-        {state.days.length > 1 && (
-          <button
-            onClick={() => {
-              const lastHasItems = state.days[state.days.length - 1].meals.some(m => m.items.length > 0)
-              if (!lastHasItems || confirm(`Remove ${state.days[state.days.length - 1].date}? It has items.`)) {
-                dispatch({ type: 'REMOVE_LAST_DAY' })
+          {state.days.length > 1 && (
+            <button
+              onClick={() => {
+                const lastHasItems = state.days[state.days.length - 1].meals.some(m => m.items.length > 0)
+                if (!lastHasItems || confirm(`Remove ${state.days[state.days.length - 1].date}? It has items.`)) {
+                  dispatch({ type: 'REMOVE_LAST_DAY' })
+                }
+              }}
+              className="shrink-0 px-2 py-1.5 rounded-lg text-sm text-gray-400 hover:text-red-500 hover:bg-red-50"
+              title="Remove last day"
+            >
+              − Day
+            </button>
+          )}
+        </div>
+
+        {/* Meal sections for active day */}
+        {currentDay && MEAL_TYPES.map(mealType => {
+          const meal = currentDay.meals.find(m => m.type === mealType)
+          return (
+            <MealSection
+              key={mealType}
+              mealType={mealType}
+              label={MEAL_LABELS[mealType]}
+              items={meal?.items ?? []}
+              foodMap={foodMap}
+              recipeMap={recipeMap}
+              allFoodItems={allFoodItems ?? []}
+              allRecipes={allRecipes ?? []}
+              weightUnit={weightUnit}
+              onAdd={item => dispatch({ type: 'ADD_ITEM', dayIndex: activeDay, mealType, item })}
+              onSetServings={(index, servings) =>
+                dispatch({ type: 'SET_SERVINGS', dayIndex: activeDay, mealType, itemIndex: index, servings })
               }
-            }}
-            className="shrink-0 px-2 py-1.5 rounded-lg text-sm text-gray-400 hover:text-red-500 hover:bg-red-50"
-            title="Remove last day"
-          >
-            − Day
-          </button>
+              onRemove={index =>
+                dispatch({ type: 'REMOVE_ITEM', dayIndex: activeDay, mealType, itemIndex: index })
+              }
+            />
+          )
+        })}
+
+        {/* Day totals */}
+        {dayTotals.calories > 0 && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mt-2">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1.5">
+              {currentDay?.date} totals
+            </p>
+            <NutritionSummary totals={dayTotals} weightUnit={weightUnit} />
+          </div>
         )}
       </div>
 
-      {/* Meal sections for active day */}
-      {currentDay && MEAL_TYPES.map(mealType => {
-        const meal = currentDay.meals.find(m => m.type === mealType)
-        return (
-          <MealSection
-            key={mealType}
-            mealType={mealType}
-            label={MEAL_LABELS[mealType]}
-            items={meal?.items ?? []}
-            foodMap={foodMap}
-            recipeMap={recipeMap}
-            allFoodItems={allFoodItems ?? []}
-            allRecipes={allRecipes ?? []}
-            weightUnit={weightUnit}
-            onAdd={item => dispatch({ type: 'ADD_ITEM', dayIndex: activeDay, mealType, item })}
-            onSetServings={(index, servings) =>
-              dispatch({ type: 'SET_SERVINGS', dayIndex: activeDay, mealType, itemIndex: index, servings })
-            }
-            onRemove={index =>
-              dispatch({ type: 'REMOVE_ITEM', dayIndex: activeDay, mealType, itemIndex: index })
-            }
-          />
-        )
-      })}
-
-      {/* Day totals */}
-      {dayTotals.calories > 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mt-2">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1.5">
-            {currentDay?.date} totals
+      {/* Print-only view — all days */}
+      <div className="hidden print:block">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">{state.name}</h1>
+          <p className="text-sm text-gray-500">
+            {state.days.length} day{state.days.length !== 1 ? 's' : ''}&nbsp;·&nbsp;
+            {formatWeight(tripTotals.weightG, weightUnit)} total&nbsp;·&nbsp;
+            {Math.round(tripTotals.calories).toLocaleString()} cal total
+            {state.days.length > 0 && (
+              <>&nbsp;·&nbsp;{Math.round(tripTotals.calories / state.days.length).toLocaleString()} cal/day avg</>
+            )}
           </p>
-          <NutritionSummary totals={dayTotals} weightUnit={weightUnit} />
         </div>
-      )}
-    </div>
+
+        {state.days.map((day, dayIndex) => {
+          const dTotals = day.meals.reduce(
+            (acc, meal) => addTotals(acc, computeMealTotals(meal.items, foodMap, recipeMap)),
+            emptyTotals(),
+          )
+          return (
+            <div key={dayIndex} className="mb-8 break-inside-avoid-page">
+              <div className="border-b-2 border-gray-800 mb-2 pb-1 flex items-baseline justify-between">
+                <h2 className="text-base font-bold text-gray-900">{day.date}</h2>
+                <span className="text-xs text-gray-500">
+                  {formatWeight(dTotals.weightG, weightUnit)}&nbsp;·&nbsp;
+                  {Math.round(dTotals.calories)} cal&nbsp;·&nbsp;
+                  P {dTotals.protein.toFixed(1)}g&nbsp;·&nbsp;
+                  F {dTotals.fat.toFixed(1)}g&nbsp;·&nbsp;
+                  C {dTotals.carbs.toFixed(1)}g
+                </span>
+              </div>
+
+              {MEAL_TYPES.map(mealType => {
+                const meal = day.meals.find(m => m.type === mealType)
+                const mealItems = meal?.items ?? []
+                if (mealItems.length === 0) return null
+                const mTotals = computeMealTotals(mealItems, foodMap, recipeMap)
+                return (
+                  <div key={mealType} className="mb-3">
+                    <div className="flex items-baseline justify-between border-b border-gray-200 pb-0.5 mb-1">
+                      <span className="text-sm font-semibold text-gray-700">{MEAL_LABELS[mealType]}</span>
+                      <span className="text-xs text-gray-400">
+                        {formatWeight(mTotals.weightG, weightUnit)}&nbsp;·&nbsp;{Math.round(mTotals.calories)} cal
+                      </span>
+                    </div>
+                    {mealItems.map((item, i) => {
+                      const food = item.foodItemId != null ? foodMap.get(item.foodItemId) : undefined
+                      const recipe = item.recipeId != null ? recipeMap.get(item.recipeId) : undefined
+                      const name = food?.name ?? recipe?.name ?? '(unknown)'
+                      const iTotals = computeMealTotals([item], foodMap, recipeMap)
+                      return (
+                        <div key={i} className="flex items-baseline justify-between text-sm py-0.5">
+                          <span className="text-gray-800">
+                            {name}
+                            {food?.brand && (
+                              <span className="text-gray-400 text-xs ml-1">{food.brand}</span>
+                            )}
+                            {recipe && (
+                              <span className="text-purple-600 text-xs ml-1">Recipe</span>
+                            )}
+                          </span>
+                          <span className="text-gray-500 text-xs ml-4 shrink-0">
+                            {item.servings}×&nbsp;·&nbsp;
+                            {formatWeight(iTotals.weightG, weightUnit)}&nbsp;·&nbsp;
+                            {Math.round(iTotals.calories)} cal
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }
