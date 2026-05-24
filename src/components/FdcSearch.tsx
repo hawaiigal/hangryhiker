@@ -55,8 +55,6 @@ export function FdcSearch({ onSelect }: Props) {
     setOpen(false)
   }
 
-  const noApiKey = !import.meta.env.VITE_FDC_API_KEY
-
   return (
     <div ref={containerRef} className="relative">
       <div className="flex items-center gap-2 mb-1">
@@ -64,19 +62,13 @@ export function FdcSearch({ onSelect }: Props) {
         {loading && <span className="text-xs text-gray-400">Searching…</span>}
       </div>
 
-      {noApiKey ? (
-        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-          Add <code className="font-mono">VITE_FDC_API_KEY</code> to <code className="font-mono">.env.local</code> to enable food search.
-        </p>
-      ) : (
-        <input
-          type="text"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="e.g. instant oatmeal, Clif Bar…"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      )}
+      <input
+        type="text"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder="e.g. instant oatmeal, Clif Bar…"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
 
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
 

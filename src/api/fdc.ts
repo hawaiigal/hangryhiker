@@ -1,7 +1,5 @@
 import type { FoodItem } from '../types'
 
-const BASE = 'https://api.nal.usda.gov/fdc/v1'
-
 // Nutrient IDs used by FoodData Central
 const NID = {
   calories: 1008,
@@ -33,7 +31,7 @@ interface SearchResponse {
 
 export interface FdcResult {
   fdcId: number
-  label: string          // display string for the dropdown
+  label: string
   food: Omit<FoodItem, 'id'>
 }
 
@@ -44,8 +42,7 @@ function nutrient(nutrients: FdcNutrient[], id: number): number {
 function toGrams(size: number, unit: string): number {
   const u = unit.toLowerCase()
   if (u === 'oz') return size * 28.3495
-  if (u === 'ml' || u === 'g') return size
-  return size  // assume grams for anything else
+  return size  // g, ml, or unknown — treat as grams
 }
 
 function mapFood(f: FdcFood): Omit<FoodItem, 'id'> {
@@ -68,18 +65,8 @@ function mapFood(f: FdcFood): Omit<FoodItem, 'id'> {
 }
 
 export async function searchFdc(query: string): Promise<FdcResult[]> {
-  const key = import.meta.env.VITE_FDC_API_KEY
-  if (!key) throw new Error('VITE_FDC_API_KEY is not set')
-
-  const params = new URLSearchParams({
-    query,
-    api_key: key,
-    pageSize: '20',
-    dataType: 'Branded,Foundation,SR Legacy',
-  })
-
-  const res = await fetch(`${BASE}/foods/search?${params}`)
-  if (!res.ok) throw new Error(`FDC API error ${res.status}`)
+  const res = await fetch(`/api/fdc-search?query=${encodeURIComponent(query)}`)
+  if (!res.ok) throw new Error(`Search failed (${res.status})`)
 
   const data: SearchResponse = await res.json()
 
