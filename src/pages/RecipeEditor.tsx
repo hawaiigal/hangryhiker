@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { useParams, useNavigate, Link } from 'react-router'
+import { useParams, useNavigate, useLocation, Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
 import { computeIngredientTotals, formatWeight } from '../utils/nutrition'
@@ -10,6 +10,8 @@ import type { FoodItem, RecipeIngredient } from '../types'
 export function RecipeEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { state: routeState } = useLocation()
+  const returnTo: string = routeState?.returnTo ?? '/recipes'
   const { weightUnit } = useSettingsStore()
   const isNew = !id
   const searchRef = useRef<HTMLInputElement>(null)
@@ -94,7 +96,7 @@ export function RecipeEditor() {
     } else {
       await db.recipes.update(Number(id), data)
     }
-    navigate('/recipes')
+    navigate(returnTo)
   }
 
   // Show nothing while loading an existing recipe
@@ -105,8 +107,8 @@ export function RecipeEditor() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link to="/recipes" className="text-gray-400 hover:text-gray-600 text-sm">
-          ← Recipes
+        <Link to={returnTo} className="text-gray-400 hover:text-gray-600 text-sm">
+          ←
         </Link>
         <h1 className="text-2xl font-semibold text-gray-900">
           {isNew ? 'New recipe' : 'Edit recipe'}
@@ -243,7 +245,7 @@ export function RecipeEditor() {
       {/* Actions */}
       <div className="flex gap-3">
         <Link
-          to="/recipes"
+          to={returnTo}
           className="flex-1 text-center border border-gray-300 text-gray-700 rounded-lg py-2 text-sm hover:bg-gray-50"
         >
           Cancel
