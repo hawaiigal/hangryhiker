@@ -5,9 +5,11 @@ export interface FoodItem {
   name: string
   brand?: string
   servingSizeG: number  // always stored in grams
+  servingsPerContainer?: number
   calories: number
   carbs: number
   fiber: number
+  addedSugars?: number
   protein: number
   fat: number
   sodium: number        // milligrams

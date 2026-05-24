@@ -12,6 +12,7 @@ export function FdcSearch({ onSelect }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [open, setOpen] = useState(false)
+  const [selected, setSelected] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -53,6 +54,7 @@ export function FdcSearch({ onSelect }: Props) {
     setQuery('')
     setResults([])
     setOpen(false)
+    setSelected(true)
   }
 
   return (
@@ -90,6 +92,12 @@ export function FdcSearch({ onSelect }: Props) {
 
       {open && !loading && results.length === 0 && query.length >= 2 && (
         <p className="mt-1 text-xs text-gray-400">No results found.</p>
+      )}
+
+      {selected && (
+        <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          Double-check the values below against your product label — USDA data quality varies by product.
+        </p>
       )}
     </div>
   )

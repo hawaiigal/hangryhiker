@@ -3,9 +3,11 @@ export interface ParsedNutrition {
   fat?: number
   carbs?: number
   fiber?: number
+  addedSugars?: number
   protein?: number
   sodium?: number
   servingSizeG?: number
+  servingsPerContainer?: number
 }
 
 export function parseNutritionLabel(text: string): ParsedNutrition {
@@ -36,9 +38,19 @@ export function parseNutritionLabel(text: string): ParsedNutrition {
     t.match(/\bfiber\s+(\d+\.?\d*)\s*g/i)
   if (fiberMatch) result.fiber = parseFloat(fiberMatch[1])
 
+  // Added Sugars — "Includes Xg Added Sugars" or "Added Sugars Xg"
+  const addedSugarsMatch =
+    t.match(/includes\s+(\d+\.?\d*)\s*g\s+added\s+sugars/i) ??
+    t.match(/added\s+sugars\s+(\d+\.?\d*)\s*g/i)
+  if (addedSugarsMatch) result.addedSugars = parseFloat(addedSugarsMatch[1])
+
   // Protein
   const proteinMatch = t.match(/\bprotein\s+(\d+\.?\d*)\s*g/i)
   if (proteinMatch) result.protein = parseFloat(proteinMatch[1])
+
+  // Servings per container
+  const spcMatch = t.match(/(\d+\.?\d*)\s+servings?\s+per\s+container/i)
+  if (spcMatch) result.servingsPerContainer = parseFloat(spcMatch[1])
 
   // Serving size in grams — look for parenthesized (Xg) on the serving size line first
   const servingLine = t.match(/serving\s+size[^\n]*/i)?.[0] ?? ''

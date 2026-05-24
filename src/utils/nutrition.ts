@@ -65,6 +65,35 @@ export function computeMealTotals(
   }, emptyTotals())
 }
 
+// Returns total servings consumed per food item across an entire trip.
+// Includes food items used directly in meals and as recipe ingredients.
+export function computeTripShoppingList(
+  trip: Trip,
+  foodMap: Map<number, FoodItem>,
+  recipeMap: Map<number, Recipe>,
+): Map<number, number> {
+  const totals = new Map<number, number>()
+  for (const day of trip.days) {
+    for (const meal of day.meals) {
+      for (const item of meal.items) {
+        if (item.foodItemId != null) {
+          totals.set(item.foodItemId, (totals.get(item.foodItemId) ?? 0) + item.servings)
+        } else if (item.recipeId != null) {
+          const recipe = recipeMap.get(item.recipeId)
+          if (recipe) {
+            for (const ing of recipe.ingredients) {
+              if (foodMap.has(ing.foodItemId)) {
+                totals.set(ing.foodItemId, (totals.get(ing.foodItemId) ?? 0) + ing.quantity * item.servings)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return totals
+}
+
 export function computeTripTotals(
   trip: Trip,
   foodMap: Map<number, FoodItem>,

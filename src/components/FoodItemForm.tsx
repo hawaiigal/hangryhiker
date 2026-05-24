@@ -17,10 +17,12 @@ interface FormState {
   brand: string
   servingAmount: string
   servingUnit: WeightUnit
+  servingsPerContainer: string
   calories: string
   fat: string
   carbs: string
   fiber: string
+  addedSugars: string
   protein: string
   sodium: string
 }
@@ -29,7 +31,8 @@ function initialState(item: FoodItem | undefined, defaultUnit: WeightUnit): Form
   if (!item) {
     return {
       name: '', brand: '', servingAmount: '', servingUnit: defaultUnit,
-      calories: '', fat: '', carbs: '', fiber: '', protein: '', sodium: '',
+      servingsPerContainer: '',
+      calories: '', fat: '', carbs: '', fiber: '', addedSugars: '', protein: '', sodium: '',
     }
   }
   const servingAmount = defaultUnit === 'oz'
@@ -40,10 +43,12 @@ function initialState(item: FoodItem | undefined, defaultUnit: WeightUnit): Form
     brand: item.brand ?? '',
     servingAmount,
     servingUnit: defaultUnit,
+    servingsPerContainer: item.servingsPerContainer != null ? String(item.servingsPerContainer) : '',
     calories: String(item.calories),
     fat: String(item.fat),
     carbs: String(item.carbs),
     fiber: String(item.fiber),
+    addedSugars: item.addedSugars != null ? String(item.addedSugars) : '',
     protein: String(item.protein),
     sodium: String(item.sodium),
   }
@@ -61,8 +66,10 @@ export function FoodItemForm({ item, onClose }: Props) {
       if (data.fat != null) next.fat = String(data.fat)
       if (data.carbs != null) next.carbs = String(data.carbs)
       if (data.fiber != null) next.fiber = String(data.fiber)
+      if (data.addedSugars != null) next.addedSugars = String(data.addedSugars)
       if (data.protein != null) next.protein = String(data.protein)
       if (data.sodium != null) next.sodium = String(data.sodium)
+      if (data.servingsPerContainer != null) next.servingsPerContainer = String(data.servingsPerContainer)
       if (data.servingSizeG != null) {
         next.servingAmount = weightUnit === 'oz'
           ? gToOz(data.servingSizeG).toFixed(2)
@@ -117,14 +124,18 @@ export function FoodItemForm({ item, onClose }: Props) {
 
     const servingSizeG = form.servingUnit === 'oz' ? ozToG(servingAmount) : servingAmount
 
+    const spc = parseFloat(form.servingsPerContainer)
+    const addedSugars = parseFloat(form.addedSugars)
     const data: Omit<FoodItem, 'id'> = {
       name: form.name.trim(),
       brand: form.brand.trim() || undefined,
       servingSizeG,
+      servingsPerContainer: isNaN(spc) || spc <= 0 ? undefined : spc,
       calories: parseFloat(form.calories) || 0,
       fat: parseFloat(form.fat) || 0,
       carbs: parseFloat(form.carbs) || 0,
       fiber: parseFloat(form.fiber) || 0,
+      addedSugars: isNaN(addedSugars) ? undefined : addedSugars,
       protein: parseFloat(form.protein) || 0,
       sodium: parseFloat(form.sodium) || 0,
     }
@@ -180,25 +191,39 @@ export function FoodItemForm({ item, onClose }: Props) {
               </div>
             </div>
 
-            <div>
-              <label className={labelCls}>Serving size</label>
-              <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Serving size</label>
+                <div className="flex gap-2">
+                  <input
+                    className={inputCls}
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={form.servingAmount}
+                    onChange={field('servingAmount')}
+                    placeholder="e.g. 43"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleUnitToggle}
+                    className="shrink-0 w-14 border border-gray-300 rounded-lg text-sm font-mono font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    {form.servingUnit}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>Servings per container</label>
                 <input
                   className={inputCls}
                   type="number"
-                  min="0"
-                  step="any"
-                  value={form.servingAmount}
-                  onChange={field('servingAmount')}
-                  placeholder="e.g. 43"
+                  min="1"
+                  step="1"
+                  value={form.servingsPerContainer}
+                  onChange={field('servingsPerContainer')}
+                  placeholder="e.g. 3"
                 />
-                <button
-                  type="button"
-                  onClick={handleUnitToggle}
-                  className="shrink-0 w-14 border border-gray-300 rounded-lg text-sm font-mono font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  {form.servingUnit}
-                </button>
               </div>
             </div>
 
@@ -220,6 +245,10 @@ export function FoodItemForm({ item, onClose }: Props) {
                 <div>
                   <label className={labelCls}>Fiber (g)</label>
                   <input className={inputCls} type="number" min="0" step="any" value={form.fiber} onChange={field('fiber')} placeholder="0" />
+                </div>
+                <div>
+                  <label className={labelCls}>Added Sugars (g)</label>
+                  <input className={inputCls} type="number" min="0" step="any" value={form.addedSugars} onChange={field('addedSugars')} placeholder="optional" />
                 </div>
                 <div>
                   <label className={labelCls}>Protein (g)</label>

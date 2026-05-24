@@ -2,7 +2,7 @@ import { useReducer, useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
-import { computeMealTotals, computeTripTotals, addTotals, emptyTotals, formatWeight } from '../utils/nutrition'
+import { computeMealTotals, computeTripTotals, computeTripShoppingList, addTotals, emptyTotals, formatWeight } from '../utils/nutrition'
 import { MEAL_TYPES, MEAL_LABELS, createEmptyDays } from '../utils/trip'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
@@ -132,6 +132,13 @@ export function TripEditor() {
 
   const tripTotals = useMemo(
     () => initialized ? computeTripTotals({ name: state.name, days: state.days }, foodMap, recipeMap) : emptyTotals(),
+    [state, foodMap, recipeMap, initialized],
+  )
+
+  const shoppingList = useMemo(
+    () => initialized
+      ? computeTripShoppingList({ name: state.name, days: state.days }, foodMap, recipeMap)
+      : new Map<number, number>(),
     [state, foodMap, recipeMap, initialized],
   )
 
@@ -282,6 +289,42 @@ export function TripEditor() {
             <NutritionSummary totals={dayTotals} weightUnit={weightUnit} />
           </div>
         )}
+
+        {/* Shopping list */}
+        {shoppingList.size > 0 && (
+          <div className="mt-6 border border-gray-200 rounded-xl px-4 py-4">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Shopping list</p>
+            <div className="divide-y divide-gray-100">
+              {[...shoppingList.entries()].map(([foodId, totalServings]) => {
+                const food = foodMap.get(foodId)
+                if (!food) return null
+                const boxes = food.servingsPerContainer != null
+                  ? Math.ceil(totalServings / food.servingsPerContainer)
+                  : null
+                return (
+                  <div key={foodId} className="flex items-center justify-between py-2 text-sm">
+                    <div className="min-w-0 mr-4">
+                      <span className="text-gray-900">{food.name}</span>
+                      {food.brand && (
+                        <span className="text-gray-400 text-xs ml-1.5">{food.brand}</span>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {boxes != null ? (
+                        <span className="font-semibold text-gray-900">{boxes} box{boxes !== 1 ? 'es' : ''}</span>
+                      ) : (
+                        <span className="text-gray-500">{totalServings} serving{totalServings !== 1 ? 's' : ''}</span>
+                      )}
+                      {food.servingsPerContainer != null && (
+                        <span className="text-gray-400 text-xs ml-1.5">({totalServings} srv)</span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Print-only view — all days */}
@@ -359,6 +402,35 @@ export function TripEditor() {
             </div>
           )
         })}
+
+        {/* Print shopping list */}
+        {shoppingList.size > 0 && (
+          <div className="mt-8 break-inside-avoid-page">
+            <div className="border-b-2 border-gray-800 mb-2 pb-1">
+              <h2 className="text-base font-bold text-gray-900">Shopping list</h2>
+            </div>
+            {[...shoppingList.entries()].map(([foodId, totalServings]) => {
+              const food = foodMap.get(foodId)
+              if (!food) return null
+              const boxes = food.servingsPerContainer != null
+                ? Math.ceil(totalServings / food.servingsPerContainer)
+                : null
+              return (
+                <div key={foodId} className="flex items-baseline justify-between text-sm py-0.5">
+                  <span className="text-gray-800">
+                    {food.name}
+                    {food.brand && <span className="text-gray-400 text-xs ml-1">{food.brand}</span>}
+                  </span>
+                  <span className="text-gray-600 ml-4 shrink-0">
+                    {boxes != null
+                      ? `${boxes} box${boxes !== 1 ? 'es' : ''} (${totalServings} srv)`
+                      : `${totalServings} serving${totalServings !== 1 ? 's' : ''}`}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </>
   )
