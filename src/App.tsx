@@ -1,5 +1,6 @@
-import { Routes, Route, NavLink } from 'react-router'
+import { Routes, Route, NavLink, Link } from 'react-router'
 import { useSettingsStore } from './store/settingsStore'
+import { Dashboard } from './pages/Dashboard'
 import { FoodLibrary } from './pages/FoodLibrary'
 import { RecipeList } from './pages/RecipeList'
 import { RecipeEditor } from './pages/RecipeEditor'
@@ -16,12 +17,12 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <img src="/logo.svg" alt="" className="h-8 w-8" />
           <span className="font-semibold text-gray-900">Hangry Hiker</span>
-        </div>
+        </Link>
         <div className="flex items-center gap-4 text-sm">
-          <NavLink to="/" end className={navLink}>Food Library</NavLink>
+          <NavLink to="/food" className={navLink}>Food Library</NavLink>
           <NavLink to="/recipes" className={navLink}>Recipes</NavLink>
           <NavLink to="/trips" className={navLink}>Trips</NavLink>
           <button
@@ -35,7 +36,8 @@ function App() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <Routes>
-          <Route path="/" element={<FoodLibrary />} />
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/food" element={<FoodLibrary />} />
           <Route path="/recipes" element={<RecipeList />} />
           <Route path="/recipes/new" element={<RecipeEditor />} />
           <Route path="/recipes/:id" element={<RecipeEditor />} />
