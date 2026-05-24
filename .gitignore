@@ -11,6 +11,9 @@ dist/
 .env.local
 .env.*.local
 
+# Wrangler
+.wrangler/
+
 # Editor
 .vscode/
 .idea/
