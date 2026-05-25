@@ -59,7 +59,12 @@ export function FoodSearch({
         >
           + Add your first food item
         </button>
-        {showFoodForm && <FoodItemForm onClose={() => setShowFoodForm(false)} />}
+        {showFoodForm && (
+          <FoodItemForm
+            onClose={() => setShowFoodForm(false)}
+            onSaved={food => { onSelectFood(food); inputRef.current?.focus() }}
+          />
+        )}
       </>
     )
   }
@@ -117,7 +122,12 @@ export function FoodSearch({
           </div>
         )}
       </div>
-      {showFoodForm && <FoodItemForm onClose={() => setShowFoodForm(false)} />}
+      {showFoodForm && (
+        <FoodItemForm
+          onClose={() => setShowFoodForm(false)}
+          onSaved={food => { onSelectFood(food); inputRef.current?.focus() }}
+        />
+      )}
     </>
   )
 }

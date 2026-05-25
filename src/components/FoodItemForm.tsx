@@ -10,6 +10,7 @@ import type { ParsedNutrition } from '../utils/parseNutritionLabel'
 interface Props {
   item?: FoodItem
   onClose: () => void
+  onSaved?: (item: FoodItem) => void
 }
 
 interface FormState {
@@ -54,7 +55,7 @@ function initialState(item: FoodItem | undefined, defaultUnit: WeightUnit): Form
   }
 }
 
-export function FoodItemForm({ item, onClose }: Props) {
+export function FoodItemForm({ item, onClose, onSaved }: Props) {
   const { weightUnit } = useSettingsStore()
   const [form, setForm] = useState<FormState>(() => initialState(item, weightUnit))
   const [error, setError] = useState('')
@@ -144,8 +145,10 @@ export function FoodItemForm({ item, onClose }: Props) {
 
     if (item?.id != null) {
       await db.foodItems.update(item.id, data)
+      onSaved?.({ ...data, id: item.id })
     } else {
-      await db.foodItems.add(data)
+      const id = await db.foodItems.add(data)
+      onSaved?.({ ...data, id: id as number })
     }
     onClose()
   }
