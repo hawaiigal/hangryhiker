@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { computeMealTotals, formatWeight } from '../utils/nutrition'
 import { NutritionSummary } from './NutritionSummary'
 import { FoodSearch } from './FoodSearch'
+import { FoodItemForm } from './FoodItemForm'
 import type { FoodItem, MealItem, MealType, Recipe, WeightUnit } from '../types'
 
 interface Props {
@@ -25,6 +26,7 @@ export function MealSection({
   onAdd, onSetServings, onRemove,
 }: Props) {
   const location = useLocation()
+  const [editingFood, setEditingFood] = useState<FoodItem | undefined>(undefined)
 
   const totals = useMemo(
     () => computeMealTotals(items, foodMap, recipeMap),
@@ -40,6 +42,7 @@ export function MealSection({
   const noLibrary = allFoodItems.length === 0 && allRecipes.length === 0
 
   return (
+    <>
     <div className="border border-gray-200 rounded-xl mb-3">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200 rounded-t-xl">
@@ -69,10 +72,26 @@ export function MealSection({
           return (
             <div key={index} className="flex items-center gap-2">
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate flex items-center gap-1.5">
-                  {name}
+                <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                  {food ? (
+                    <button
+                      type="button"
+                      onClick={() => setEditingFood(food)}
+                      className="text-gray-900 hover:text-brand-600 hover:underline truncate text-left"
+                    >
+                      {name}
+                    </button>
+                  ) : recipe ? (
+                    <Link
+                      to={`/recipes/${recipe.id}`}
+                      state={{ returnTo: location.pathname }}
+                      className="text-gray-900 hover:text-brand-600 hover:underline truncate"
+                    >
+                      {name}
+                    </Link>
+                  ) : name}
                   {recipe && (
-                    <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-normal">
+                    <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-normal shrink-0">
                       Recipe
                     </span>
                   )}
@@ -142,5 +161,9 @@ export function MealSection({
         />
       </div>
     </div>
+    {editingFood && (
+      <FoodItemForm item={editingFood} onClose={() => setEditingFood(undefined)} />
+    )}
+    </>
   )
 }

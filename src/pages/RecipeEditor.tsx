@@ -6,6 +6,7 @@ import { computeIngredientTotals, formatWeight, scaleTotals } from '../utils/nut
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
 import { FoodSearch } from '../components/FoodSearch'
+import { FoodItemForm } from '../components/FoodItemForm'
 import type { FoodItem, RecipeIngredient } from '../types'
 
 export function RecipeEditor() {
@@ -26,6 +27,7 @@ export function RecipeEditor() {
   const [servings, setServings] = useState(1)
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
   const [nameError, setNameError] = useState('')
+  const [editingFood, setEditingFood] = useState<FoodItem | undefined>(undefined)
   // Track whether we've seeded state from the loaded recipe (edit mode only)
   const [initialized, setInitialized] = useState(isNew)
 
@@ -96,6 +98,7 @@ export function RecipeEditor() {
   const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600'
 
   return (
+    <>
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
         <Link to={returnTo} className="text-gray-400 hover:text-gray-600 text-sm">
@@ -161,7 +164,13 @@ export function RecipeEditor() {
                   className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm truncate">{food.name}</div>
+                    <button
+                    type="button"
+                    onClick={() => setEditingFood(food)}
+                    className="font-medium text-gray-900 text-sm truncate text-left hover:text-brand-600 hover:underline"
+                  >
+                    {food.name}
+                  </button>
                     <div className="text-xs text-gray-400">
                       {formatWeight(food.servingSizeG * quantity, weightUnit)} · {Math.round(food.calories * quantity)} cal
                     </div>
@@ -238,5 +247,9 @@ export function RecipeEditor() {
         </button>
       </div>
     </div>
+    {editingFood && (
+      <FoodItemForm item={editingFood} onClose={() => setEditingFood(undefined)} />
+    )}
+    </>
   )
 }
