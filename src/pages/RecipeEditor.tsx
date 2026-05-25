@@ -123,12 +123,12 @@ export function RecipeEditor() {
           <input
             className={inputCls}
             type="number"
-            min="1"
-            step="1"
+            min="0.5"
+            step="0.5"
             value={servings}
             onChange={e => {
-              const v = parseInt(e.target.value)
-              if (!isNaN(v) && v >= 1) setServings(v)
+              const v = parseFloat(e.target.value)
+              if (!isNaN(v) && v >= 0.5) setServings(v)
             }}
           />
         </div>
