@@ -218,41 +218,43 @@ export function TripEditor() {
         )}
 
         {/* Day tabs */}
-        <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-          {state.days.map((day, i) => (
+        <div className="overflow-x-auto mb-4 pb-1 -mx-4 px-4">
+          <div className="flex items-center gap-1 min-w-max">
+            {state.days.map((day, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveDay(i)}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  i === activeDay
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {day.date}
+              </button>
+            ))}
             <button
-              key={i}
-              onClick={() => setActiveDay(i)}
-              className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                i === activeDay
-                  ? 'bg-brand-600 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              onClick={() => { dispatch({ type: 'ADD_DAY' }); setActiveDay(state.days.length) }}
+              className="shrink-0 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-brand-600 hover:bg-brand-50"
+              title="Add day"
             >
-              {day.date}
+              + Day
             </button>
-          ))}
-          <button
-            onClick={() => { dispatch({ type: 'ADD_DAY' }); setActiveDay(state.days.length) }}
-            className="shrink-0 px-3 py-1.5 rounded-lg text-sm text-gray-400 hover:text-brand-600 hover:bg-brand-50"
-            title="Add day"
-          >
-            + Day
-          </button>
-          {state.days.length > 1 && (
-            <button
-              onClick={() => {
-                const lastHasItems = state.days[state.days.length - 1].meals.some(m => m.items.length > 0)
-                if (!lastHasItems || confirm(`Remove ${state.days[state.days.length - 1].date}? It has items.`)) {
-                  dispatch({ type: 'REMOVE_LAST_DAY' })
-                }
-              }}
-              className="shrink-0 px-2 py-1.5 rounded-lg text-sm text-gray-400 hover:text-red-500 hover:bg-red-50"
-              title="Remove last day"
-            >
-              − Day
-            </button>
-          )}
+            {state.days.length > 1 && (
+              <button
+                onClick={() => {
+                  const lastHasItems = state.days[state.days.length - 1].meals.some(m => m.items.length > 0)
+                  if (!lastHasItems || confirm(`Remove ${state.days[state.days.length - 1].date}? It has items.`)) {
+                    dispatch({ type: 'REMOVE_LAST_DAY' })
+                  }
+                }}
+                className="shrink-0 px-2 py-1.5 rounded-lg text-sm text-gray-400 hover:text-red-500 hover:bg-red-50"
+                title="Remove last day"
+              >
+                − Day
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Meal sections for active day */}
