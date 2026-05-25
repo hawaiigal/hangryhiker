@@ -178,7 +178,7 @@ export function TripEditor() {
       <div className="print:hidden">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap min-w-0">
             <Link to="/trips" className="text-gray-400 hover:text-gray-600 text-sm shrink-0">
               ← Trips
             </Link>
@@ -218,7 +218,7 @@ export function TripEditor() {
         )}
 
         {/* Day tabs */}
-        <div className="overflow-x-auto mb-4 pb-1 -mx-4 px-4">
+        <div className="overflow-x-auto mb-4 pb-1">
           <div className="flex items-center gap-1 min-w-max">
             {state.days.map((day, i) => (
               <button
