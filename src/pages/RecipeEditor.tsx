@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
 import { computeIngredientTotals, formatWeight } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
+import { FoodSearch } from '../components/FoodSearch'
 import type { FoodItem, RecipeIngredient } from '../types'
 
 export function RecipeEditor() {
@@ -14,7 +15,6 @@ export function RecipeEditor() {
   const returnTo: string = routeState?.returnTo ?? '/recipes'
   const { weightUnit } = useSettingsStore()
   const isNew = !id
-  const searchRef = useRef<HTMLInputElement>(null)
 
   const recipe = useLiveQuery(
     () => (id ? db.recipes.get(Number(id)) : undefined),
@@ -24,7 +24,6 @@ export function RecipeEditor() {
 
   const [name, setName] = useState('')
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
-  const [search, setSearch] = useState('')
   const [nameError, setNameError] = useState('')
   // Track whether we've seeded state from the loaded recipe (edit mode only)
   const [initialized, setInitialized] = useState(isNew)
@@ -42,14 +41,6 @@ export function RecipeEditor() {
     return new Map(allFoodItems.map(f => [f.id!, f]))
   }, [allFoodItems])
 
-  const searchResults = useMemo(() => {
-    if (!allFoodItems || !search.trim()) return []
-    const q = search.toLowerCase()
-    return allFoodItems
-      .filter(f => f.name.toLowerCase().includes(q) || f.brand?.toLowerCase().includes(q))
-      .slice(0, 7)
-  }, [allFoodItems, search])
-
   const totals = useMemo(
     () => computeIngredientTotals(ingredients, foodMap),
     [ingredients, foodMap],
@@ -65,8 +56,6 @@ export function RecipeEditor() {
       }
       return [...prev, { foodItemId: food.id!, quantity: 1 }]
     })
-    setSearch('')
-    searchRef.current?.focus()
   }
 
   function setQuantity(foodItemId: number, raw: string) {
@@ -130,43 +119,12 @@ export function RecipeEditor() {
       {/* Ingredient picker */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-1">Add ingredients</label>
-        <div className="relative">
-          <input
-            ref={searchRef}
-            className={inputCls}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search food library..."
-          />
-          {searchResults.length > 0 && (
-            <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 overflow-hidden">
-              {searchResults.map(food => (
-                <button
-                  key={food.id}
-                  type="button"
-                  onClick={() => addIngredient(food)}
-                  className="w-full text-left px-4 py-2.5 hover:bg-brand-50 flex items-center justify-between gap-4 text-sm border-b border-gray-100 last:border-0"
-                >
-                  <span>
-                    <span className="font-medium text-gray-900">{food.name}</span>
-                    {food.brand && <span className="text-gray-400 ml-1.5">{food.brand}</span>}
-                  </span>
-                  <span className="text-gray-400 shrink-0">
-                    {formatWeight(food.servingSizeG, weightUnit)} / serving
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-          {search.trim() && searchResults.length === 0 && allFoodItems !== undefined && (
-            <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 px-4 py-3 text-sm text-gray-400">
-              No matching food items.{' '}
-              <Link to="/" className="text-brand-600 hover:underline">
-                Add one to your food library.
-              </Link>
-            </div>
-          )}
-        </div>
+        <FoodSearch
+          allFoodItems={allFoodItems ?? []}
+          weightUnit={weightUnit}
+          placeholder="Search food library..."
+          onSelectFood={addIngredient}
+        />
       </div>
 
       {/* Ingredient list */}
