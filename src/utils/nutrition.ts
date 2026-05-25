@@ -16,7 +16,7 @@ export function addTotals(a: NutritionTotals, b: NutritionTotals): NutritionTota
   }
 }
 
-function scaleTotals(t: NutritionTotals, factor: number): NutritionTotals {
+export function scaleTotals(t: NutritionTotals, factor: number): NutritionTotals {
   return {
     weightG: t.weightG * factor,
     calories: t.calories * factor,
@@ -59,7 +59,7 @@ export function computeMealTotals(
     if (item.recipeId != null) {
       const recipe = recipeMap.get(item.recipeId)
       if (!recipe) return acc
-      return addTotals(acc, scaleTotals(computeIngredientTotals(recipe.ingredients, foodMap), item.servings))
+      return addTotals(acc, scaleTotals(computeIngredientTotals(recipe.ingredients, foodMap), item.servings / recipe.servings))
     }
     return acc
   }, emptyTotals())
@@ -83,7 +83,7 @@ export function computeTripShoppingList(
           if (recipe) {
             for (const ing of recipe.ingredients) {
               if (foodMap.has(ing.foodItemId)) {
-                totals.set(ing.foodItemId, (totals.get(ing.foodItemId) ?? 0) + ing.quantity * item.servings)
+                totals.set(ing.foodItemId, (totals.get(ing.foodItemId) ?? 0) + ing.quantity * (item.servings / recipe.servings))
               }
             }
           }

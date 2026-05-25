@@ -56,7 +56,7 @@ export function RecipeList() {
                 <div className="min-w-0">
                   <div className="font-medium text-gray-900 mb-1">{recipe.name}</div>
                   <div className="text-xs text-gray-400 mb-2">
-                    {recipe.ingredients.length} ingredient{recipe.ingredients.length !== 1 ? 's' : ''}
+                    {recipe.ingredients.length} ingredient{recipe.ingredients.length !== 1 ? 's' : ''} · {recipe.servings} serving{recipe.servings !== 1 ? 's' : ''}
                   </div>
                   <NutritionSummary totals={totals} weightUnit={weightUnit} compact />
                 </div>

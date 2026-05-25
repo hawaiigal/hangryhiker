@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
-import { computeIngredientTotals, formatWeight } from '../utils/nutrition'
+import { computeIngredientTotals, formatWeight, scaleTotals } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
 import { FoodSearch } from '../components/FoodSearch'
@@ -23,6 +23,7 @@ export function RecipeEditor() {
   const allFoodItems = useLiveQuery(() => db.foodItems.toArray(), [])
 
   const [name, setName] = useState('')
+  const [servings, setServings] = useState(1)
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
   const [nameError, setNameError] = useState('')
   // Track whether we've seeded state from the loaded recipe (edit mode only)
@@ -31,6 +32,7 @@ export function RecipeEditor() {
   useEffect(() => {
     if (!initialized && recipe != null) {
       setName(recipe.name)
+      setServings(recipe.servings)
       setIngredients(recipe.ingredients)
       setInitialized(true)
     }
@@ -79,7 +81,7 @@ export function RecipeEditor() {
       return
     }
     setNameError('')
-    const data = { name: name.trim(), ingredients }
+    const data = { name: name.trim(), servings, ingredients }
     if (isNew) {
       await db.recipes.add(data)
     } else {
@@ -104,16 +106,32 @@ export function RecipeEditor() {
         </h1>
       </div>
 
-      {/* Recipe name */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Recipe name *</label>
-        <input
-          className={inputCls}
-          value={name}
-          onChange={e => { setName(e.target.value); setNameError('') }}
-          placeholder="e.g. Backcountry Mac & Cheese"
-        />
-        {nameError && <p className="text-sm text-red-600 mt-1">{nameError}</p>}
+      {/* Recipe name + servings */}
+      <div className="mb-6 flex gap-4">
+        <div className="flex-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Recipe name *</label>
+          <input
+            className={inputCls}
+            value={name}
+            onChange={e => { setName(e.target.value); setNameError('') }}
+            placeholder="e.g. Backcountry Mac & Cheese"
+          />
+          {nameError && <p className="text-sm text-red-600 mt-1">{nameError}</p>}
+        </div>
+        <div className="w-32 shrink-0">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Servings</label>
+          <input
+            className={inputCls}
+            type="number"
+            min="1"
+            step="1"
+            value={servings}
+            onChange={e => {
+              const v = parseInt(e.target.value)
+              if (!isNaN(v) && v >= 1) setServings(v)
+            }}
+          />
+        </div>
       </div>
 
       {/* Ingredient picker */}
@@ -193,10 +211,13 @@ export function RecipeEditor() {
       {/* Totals */}
       {ingredients.length > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 mb-6">
-          <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
-            Recipe totals
-          </p>
-          <NutritionSummary totals={totals} weightUnit={weightUnit} />
+          <div className="flex items-baseline justify-between mb-2">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+              Per serving
+            </p>
+            <p className="text-xs text-gray-400">of {servings}</p>
+          </div>
+          <NutritionSummary totals={scaleTotals(totals, 1 / servings)} weightUnit={weightUnit} />
         </div>
       )}
 

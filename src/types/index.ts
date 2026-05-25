@@ -23,6 +23,7 @@ export interface RecipeIngredient {
 export interface Recipe {
   id?: number
   name: string
+  servings: number
   ingredients: RecipeIngredient[]
 }
 

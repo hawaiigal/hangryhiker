@@ -103,7 +103,7 @@ export function FoodSearch({
                 <span className="text-gray-400 text-xs shrink-0">
                   {result.kind === 'food'
                     ? `${formatWeight(result.item.servingSizeG, weightUnit)}/serving`
-                    : `${result.item.ingredients.length} ingredients`}
+                    : `${result.item.servings} serving${result.item.servings !== 1 ? 's' : ''}`}
                 </span>
               </button>
             ))}
