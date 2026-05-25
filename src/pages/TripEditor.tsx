@@ -189,6 +189,9 @@ export function TripEditor() {
             />
           </div>
           <div className="flex items-center gap-2 shrink-0 pt-1">
+            <span className="text-xs text-gray-400">
+              {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved ✓' : ''}
+            </span>
             <button
               onClick={handleExport}
               className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1 rounded-lg"
@@ -201,9 +204,6 @@ export function TripEditor() {
             >
               Print PDF
             </button>
-            <span className="text-xs text-gray-400">
-              {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved ✓' : ''}
-            </span>
           </div>
         </div>
 
