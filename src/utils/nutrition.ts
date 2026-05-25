@@ -59,7 +59,7 @@ export function computeMealTotals(
     if (item.recipeId != null) {
       const recipe = recipeMap.get(item.recipeId)
       if (!recipe) return acc
-      return addTotals(acc, scaleTotals(computeIngredientTotals(recipe.ingredients, foodMap), item.servings / recipe.servings))
+      return addTotals(acc, scaleTotals(computeIngredientTotals(recipe.ingredients, foodMap), item.servings / (recipe.servings || 1)))
     }
     return acc
   }, emptyTotals())
@@ -83,7 +83,7 @@ export function computeTripShoppingList(
           if (recipe) {
             for (const ing of recipe.ingredients) {
               if (foodMap.has(ing.foodItemId)) {
-                totals.set(ing.foodItemId, (totals.get(ing.foodItemId) ?? 0) + ing.quantity * (item.servings / recipe.servings))
+                totals.set(ing.foodItemId, (totals.get(ing.foodItemId) ?? 0) + ing.quantity * (item.servings / (recipe.servings || 1)))
               }
             }
           }

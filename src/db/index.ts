@@ -13,4 +13,14 @@ db.version(1).stores({
   trips: '++id, name',
 })
 
+db.version(2).stores({
+  foodItems: '++id, name, brand',
+  recipes: '++id, name',
+  trips: '++id, name',
+}).upgrade(tx =>
+  tx.table('recipes').toCollection().modify(recipe => {
+    if (recipe.servings == null) recipe.servings = 1
+  })
+)
+
 export { db }

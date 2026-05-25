@@ -43,7 +43,7 @@ export function MealSection({
 
   return (
     <>
-    <div className="border border-gray-200 rounded-xl mb-3">
+      <div className="border border-gray-200 rounded-xl mb-3">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200 rounded-t-xl">
         <span className="text-sm font-semibold text-gray-700">{label}</span>
@@ -58,16 +58,9 @@ export function MealSection({
           const food = item.foodItemId != null ? foodMap.get(item.foodItemId) : undefined
           const recipe = item.recipeId != null ? recipeMap.get(item.recipeId) : undefined
           const name = food?.name ?? recipe?.name ?? '(unknown)'
-          const weightG = food
-            ? food.servingSizeG * item.servings
-            : recipe
-              ? computeMealTotals([item], foodMap, recipeMap).weightG
-              : 0
-          const cal = food
-            ? Math.round(food.calories * item.servings)
-            : recipe
-              ? Math.round(computeMealTotals([item], foodMap, recipeMap).calories)
-              : 0
+          const itemTotals = recipe ? computeMealTotals([item], foodMap, recipeMap) : null
+          const weightG = food ? food.servingSizeG * item.servings : itemTotals?.weightG ?? 0
+          const cal = food ? Math.round(food.calories * item.servings) : Math.round(itemTotals?.calories ?? 0)
 
           return (
             <div key={index} className="flex items-center gap-2">
@@ -160,10 +153,10 @@ export function MealSection({
           }
         />
       </div>
-    </div>
-    {editingFood && (
-      <FoodItemForm item={editingFood} onClose={() => setEditingFood(undefined)} />
-    )}
+      </div>
+      {editingFood && (
+        <FoodItemForm item={editingFood} onClose={() => setEditingFood(undefined)} />
+      )}
     </>
   )
 }

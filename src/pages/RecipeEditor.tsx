@@ -28,7 +28,6 @@ export function RecipeEditor() {
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([])
   const [nameError, setNameError] = useState('')
   const [editingFood, setEditingFood] = useState<FoodItem | undefined>(undefined)
-  // Track whether we've seeded state from the loaded recipe (edit mode only)
   const [initialized, setInitialized] = useState(isNew)
 
   useEffect(() => {
@@ -226,7 +225,7 @@ export function RecipeEditor() {
             </p>
             <p className="text-xs text-gray-400">of {servings}</p>
           </div>
-          <NutritionSummary totals={scaleTotals(totals, 1 / servings)} weightUnit={weightUnit} />
+          <NutritionSummary totals={scaleTotals(totals, servings > 0 ? 1 / servings : 0)} weightUnit={weightUnit} />
         </div>
       )}
 
