@@ -223,8 +223,8 @@ export function FoodItemForm({ item, onClose, onSaved }: Props) {
                 <input
                   className={inputCls}
                   type="number"
-                  min="1"
-                  step="1"
+                  min="0.5"
+                  step="0.5"
                   value={form.servingsPerContainer}
                   onChange={field('servingsPerContainer')}
                   placeholder="e.g. 3"
