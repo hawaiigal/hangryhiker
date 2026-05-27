@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-*"
+          - "@types/react"
+          - "@types/react-*"
+      radix-ui:
+        patterns:
+          - "radix-ui"
+          - "@radix-ui/*"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+          - "vite-*"
+      typescript:
+        patterns:
+          - "typescript"
+          - "@typescript-eslint/*"
+      linting:
+        patterns:
+          - "eslint"
+          - "eslint-*"
