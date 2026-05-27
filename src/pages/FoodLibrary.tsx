@@ -4,6 +4,9 @@ import { useSettingsStore } from '../store/settingsStore'
 import { calDensity, densityLabel, formatWeight } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { FoodItemForm } from '../components/FoodItemForm'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { PageHeader } from '../components/PageHeader'
 import type { FoodItem } from '../types'
 
 type SortKey = 'name' | 'density'
@@ -68,22 +71,19 @@ export function FoodLibrary() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Food Library</h1>
-        <button
-          onClick={() => setEditTarget(null)}
-          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
-        >
-          + Add food
-        </button>
-      </div>
+      <PageHeader
+        title="Food Library"
+        action={
+          <Button onClick={() => setEditTarget(null)}>+ Add food</Button>
+        }
+      />
 
-      <input
+      <Input
         type="search"
         placeholder="Search by name or brand..."
         value={search}
         onChange={e => setSearch(e.target.value)}
-        className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm mb-6 focus:outline-none focus:ring-2 focus:ring-brand-600"
+        className="mb-6"
       />
 
       <div className="overflow-x-auto">

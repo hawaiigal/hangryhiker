@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
@@ -14,25 +14,19 @@ import {
 } from '../utils/exportImport'
 import type { AnyExport, DedupStrategy, ImportPreview } from '../utils/exportImport'
 import { ImportModal } from '../components/ImportModal'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { FoodItem, Recipe } from '../types'
 
 export function Dashboard() {
   const { weightUnit } = useSettingsStore()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const exportRef = useRef<HTMLDivElement>(null)
-  const [exportOpen, setExportOpen] = useState(false)
-
-  useEffect(() => {
-    if (!exportOpen) return
-    function handleClick(e: MouseEvent) {
-      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
-        setExportOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [exportOpen])
   const [pendingImport, setPendingImport] = useState<{ data: AnyExport; preview: ImportPreview } | null>(null)
 
   const trips = useLiveQuery(() => db.trips.toArray(), [])
@@ -81,51 +75,38 @@ export function Dashboard() {
   }
 
   async function handleExportBackup() {
-    setExportOpen(false)
     downloadAppExport(await buildFullBackupExport(), 'backup')
   }
 
   async function handleExportLibrary() {
-    setExportOpen(false)
     downloadAppExport(await buildLibraryExport(), 'library')
   }
 
   const dataActions = (
     <div className="flex items-center gap-2 flex-wrap">
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        className="border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 hover:border-gray-300"
-      >
+      <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
         Import
-      </button>
+      </Button>
       <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
-      <div className="relative" ref={exportRef}>
-        <button
-          onClick={() => setExportOpen(o => !o)}
-          className="border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 hover:border-gray-300"
-        >
-          Export ▾
-        </button>
-        {exportOpen && (
-          <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-md z-10 min-w-[210px]">
-            <button
-              onClick={handleExportBackup}
-              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
-            >
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm">Export ▾</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[210px]">
+          <DropdownMenuItem onClick={handleExportBackup}>
+            <div>
               <div className="font-medium">Full backup</div>
-              <div className="text-xs text-gray-400">All trips, food &amp; recipes</div>
-            </button>
-            <div className="border-t border-gray-100" />
-            <button
-              onClick={handleExportLibrary}
-              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg"
-            >
+              <div className="text-xs text-muted-foreground">All trips, food &amp; recipes</div>
+            </div>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleExportLibrary}>
+            <div>
               <div className="font-medium">Food &amp; recipes library</div>
-              <div className="text-xs text-gray-400">No trip data</div>
-            </button>
-          </div>
-        )}
-      </div>
+              <div className="text-xs text-muted-foreground">No trip data</div>
+            </div>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 
@@ -164,15 +145,15 @@ export function Dashboard() {
         <div className="bg-white border border-gray-200 rounded-xl px-6 py-10 text-center space-y-4">
           <p className="text-gray-500 text-sm">Get started by adding some food items, then build recipes and plan your trips.</p>
           <div className="flex justify-center gap-3 flex-wrap">
-            <Link to="/food" className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700">
-              Add food items
-            </Link>
-            <Link to="/recipes/new" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
-              Create a recipe
-            </Link>
-            <Link to="/trips/new" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
-              Plan a trip
-            </Link>
+            <Button asChild>
+              <Link to="/food">Add food items</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/recipes/new">Create a recipe</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/trips/new">Plan a trip</Link>
+            </Button>
           </div>
           <div className="pt-2 border-t border-gray-100">
             <p className="text-xs text-gray-400 mb-3">Or restore from a previous export</p>
@@ -218,15 +199,15 @@ export function Dashboard() {
 
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex gap-3 flex-wrap">
-              <Link to="/trips/new" className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700">
-                + New trip
-              </Link>
-              <Link to="/recipes/new" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
-                + New recipe
-              </Link>
-              <Link to="/food" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Manage food library
-              </Link>
+              <Button asChild>
+                <Link to="/trips/new">+ New trip</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/recipes/new">+ New recipe</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/food">Manage food library</Link>
+              </Button>
             </div>
             {dataActions}
           </div>
