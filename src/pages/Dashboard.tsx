@@ -1,13 +1,39 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
 import { computeTripTotals, formatWeight } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
+import {
+  validateExport,
+  previewImport,
+  executeImport,
+  buildLibraryExport,
+  buildFullBackupExport,
+  downloadAppExport,
+} from '../utils/exportImport'
+import type { AnyExport, DedupStrategy, ImportPreview } from '../utils/exportImport'
+import { ImportModal } from '../components/ImportModal'
 import type { FoodItem, Recipe } from '../types'
 
 export function Dashboard() {
   const { weightUnit } = useSettingsStore()
+  const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const exportRef = useRef<HTMLDivElement>(null)
+  const [exportOpen, setExportOpen] = useState(false)
+
+  useEffect(() => {
+    if (!exportOpen) return
+    function handleClick(e: MouseEvent) {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setExportOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [exportOpen])
+  const [pendingImport, setPendingImport] = useState<{ data: AnyExport; preview: ImportPreview } | null>(null)
 
   const trips = useLiveQuery(() => db.trips.toArray(), [])
   const recipes = useLiveQuery(() => db.recipes.toArray(), [])
@@ -28,6 +54,80 @@ export function Dashboard() {
   )
 
   const isEmpty = (trips?.length ?? 0) === 0 && (recipes?.length ?? 0) === 0 && (foodItems?.length ?? 0) === 0
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    try {
+      const raw = JSON.parse(await file.text())
+      const data = validateExport(raw)
+      const preview = await previewImport(data)
+      setPendingImport({ data, preview })
+    } catch (err) {
+      alert(`Import failed: ${err instanceof Error ? err.message : 'the file does not appear to be a valid export.'}`)
+    }
+  }
+
+  async function handleImportConfirm(strategy: DedupStrategy) {
+    if (!pendingImport) return
+    try {
+      const newIds = await executeImport(pendingImport.data, strategy)
+      setPendingImport(null)
+      if (newIds.length === 1) navigate(`/trips/${newIds[0]}`)
+    } catch (err) {
+      alert(`Import failed: ${err instanceof Error ? err.message : 'unexpected error.'}`)
+    }
+  }
+
+  async function handleExportBackup() {
+    setExportOpen(false)
+    downloadAppExport(await buildFullBackupExport(), 'backup')
+  }
+
+  async function handleExportLibrary() {
+    setExportOpen(false)
+    downloadAppExport(await buildLibraryExport(), 'library')
+  }
+
+  const dataActions = (
+    <div className="flex items-center gap-2 flex-wrap">
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        className="border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 hover:border-gray-300"
+      >
+        Import
+      </button>
+      <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
+      <div className="relative" ref={exportRef}>
+        <button
+          onClick={() => setExportOpen(o => !o)}
+          className="border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 hover:border-gray-300"
+        >
+          Export ▾
+        </button>
+        {exportOpen && (
+          <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-md z-10 min-w-[210px]">
+            <button
+              onClick={handleExportBackup}
+              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+            >
+              <div className="font-medium">Full backup</div>
+              <div className="text-xs text-gray-400">All trips, food &amp; recipes</div>
+            </button>
+            <div className="border-t border-gray-100" />
+            <button
+              onClick={handleExportLibrary}
+              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-b-lg"
+            >
+              <div className="font-medium">Food &amp; recipes library</div>
+              <div className="text-xs text-gray-400">No trip data</div>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 
   return (
     <div className="space-y-8">
@@ -74,6 +174,10 @@ export function Dashboard() {
               Plan a trip
             </Link>
           </div>
+          <div className="pt-2 border-t border-gray-100">
+            <p className="text-xs text-gray-400 mb-3">Or restore from a previous export</p>
+            {dataActions}
+          </div>
         </div>
       ) : (
         <>
@@ -112,18 +216,29 @@ export function Dashboard() {
             </div>
           )}
 
-          <div className="flex gap-3 flex-wrap">
-            <Link to="/trips/new" className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700">
-              + New trip
-            </Link>
-            <Link to="/recipes/new" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
-              + New recipe
-            </Link>
-            <Link to="/food" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
-              Manage food library
-            </Link>
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex gap-3 flex-wrap">
+              <Link to="/trips/new" className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700">
+                + New trip
+              </Link>
+              <Link to="/recipes/new" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
+                + New recipe
+              </Link>
+              <Link to="/food" className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50">
+                Manage food library
+              </Link>
+            </div>
+            {dataActions}
           </div>
         </>
+      )}
+
+      {pendingImport && (
+        <ImportModal
+          preview={pendingImport.preview}
+          onConfirm={handleImportConfirm}
+          onCancel={() => setPendingImport(null)}
+        />
       )}
     </div>
   )

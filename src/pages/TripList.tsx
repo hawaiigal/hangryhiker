@@ -1,16 +1,14 @@
-import { useMemo, useRef } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useMemo } from 'react'
+import { Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
 import { computeTripTotals, formatWeight } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
-import { importTripExport } from '../utils/exportImport'
 import type { FoodItem, Recipe } from '../types'
 
 export function TripList() {
   const { weightUnit } = useSettingsStore()
-  const navigate = useNavigate()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const trips = useLiveQuery(() => db.trips.toArray(), [])
   const allFoodItems = useLiveQuery(() => db.foodItems.toArray(), [])
   const allRecipes = useLiveQuery(() => db.recipes.toArray(), [])
@@ -30,44 +28,16 @@ export function TripList() {
     }
   }
 
-  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    e.target.value = ''
-    try {
-      const data = JSON.parse(await file.text())
-      const newId = await importTripExport(data)
-      navigate(`/trips/${newId}`)
-    } catch {
-      alert('Import failed: the file does not appear to be a valid meal plan export.')
-    }
-  }
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-gray-900">Trips</h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 hover:border-gray-300"
-          >
-            Import
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={handleImportFile}
-          />
-          <Link
-            to="/trips/new"
-            className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
-          >
-            + New trip
-          </Link>
-        </div>
+        <Link
+          to="/trips/new"
+          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
+        >
+          + New trip
+        </Link>
       </div>
 
       {trips && trips.length === 0 && (
