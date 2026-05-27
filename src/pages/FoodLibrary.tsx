@@ -7,6 +7,7 @@ import { FoodItemForm } from '../components/FoodItemForm'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageHeader } from '../components/PageHeader'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import type { FoodItem } from '../types'
 
 type SortKey = 'name' | 'density'
@@ -21,6 +22,7 @@ export function FoodLibrary() {
   const [sortKey, setSortKey] = useState<SortKey>('name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [editTarget, setEditTarget] = useState<EditTarget>(undefined)
+  const [pendingDelete, setPendingDelete] = useState<FoodItem | null>(null)
 
   const allItems = useLiveQuery(() => db.foodItems.toArray(), [])
 
@@ -55,10 +57,8 @@ export function FoodLibrary() {
     }
   }
 
-  async function handleDelete(item: FoodItem) {
-    if (item.id != null && confirm(`Delete "${item.name}"?`)) {
-      await db.foodItems.delete(item.id)
-    }
+  async function handleDeleteConfirm() {
+    if (pendingDelete?.id != null) await db.foodItems.delete(pendingDelete.id)
   }
 
   function sortIndicator(key: SortKey) {
@@ -141,7 +141,7 @@ export function FoodLibrary() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(item)}
+                    onClick={() => setPendingDelete(item)}
                     className="text-gray-400 hover:text-red-500"
                   >
                     Delete
@@ -169,6 +169,14 @@ export function FoodLibrary() {
           onClose={() => setEditTarget(undefined)}
         />
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={open => { if (!open) setPendingDelete(null) }}
+        title={`Delete "${pendingDelete?.name}"?`}
+        description="This will permanently delete the food item."
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   )
 }

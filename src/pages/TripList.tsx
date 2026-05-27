@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
@@ -6,10 +6,12 @@ import { computeTripTotals, formatWeight } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '../components/PageHeader'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import type { FoodItem, Recipe } from '../types'
 
 export function TripList() {
   const { weightUnit } = useSettingsStore()
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null)
 
   const trips = useLiveQuery(() => db.trips.toArray(), [])
   const allFoodItems = useLiveQuery(() => db.foodItems.toArray(), [])
@@ -24,10 +26,8 @@ export function TripList() {
     [allRecipes],
   )
 
-  async function handleDelete(id: number, name: string) {
-    if (confirm(`Delete "${name}"?`)) {
-      await db.trips.delete(id)
-    }
+  async function handleDeleteConfirm() {
+    if (pendingDelete) await db.trips.delete(pendingDelete.id)
   }
 
   return (
@@ -95,7 +95,7 @@ export function TripList() {
                     Open
                   </Link>
                   <button
-                    onClick={() => handleDelete(trip.id!, trip.name)}
+                    onClick={() => setPendingDelete({ id: trip.id!, name: trip.name })}
                     className="text-gray-400 hover:text-red-500"
                   >
                     Delete
@@ -106,6 +106,14 @@ export function TripList() {
           )
         })}
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={open => { if (!open) setPendingDelete(null) }}
+        title={`Delete "${pendingDelete?.name}"?`}
+        description="This will permanently delete the trip and all its days."
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   )
 }

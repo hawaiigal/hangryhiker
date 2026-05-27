@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
@@ -7,10 +7,12 @@ import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '../components/PageHeader'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import type { FoodItem } from '../types'
 
 export function RecipeList() {
   const { weightUnit } = useSettingsStore()
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null)
   const recipes = useLiveQuery(() => db.recipes.toArray(), [])
   const allFoodItems = useLiveQuery(() => db.foodItems.toArray(), [])
 
@@ -19,10 +21,8 @@ export function RecipeList() {
     return new Map(allFoodItems.map(f => [f.id!, f]))
   }, [allFoodItems])
 
-  async function handleDelete(id: number, name: string) {
-    if (confirm(`Delete "${name}"?`)) {
-      await db.recipes.delete(id)
-    }
+  async function handleDeleteConfirm() {
+    if (pendingDelete) await db.recipes.delete(pendingDelete.id)
   }
 
   return (
@@ -66,7 +66,7 @@ export function RecipeList() {
                     Edit
                   </Link>
                   <button
-                    onClick={() => handleDelete(recipe.id!, recipe.name)}
+                    onClick={() => setPendingDelete({ id: recipe.id!, name: recipe.name })}
                     className="text-gray-400 hover:text-red-500"
                   >
                     Delete
@@ -77,6 +77,14 @@ export function RecipeList() {
           )
         })}
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={open => { if (!open) setPendingDelete(null) }}
+        title={`Delete "${pendingDelete?.name}"?`}
+        description="This will permanently delete the recipe."
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   )
 }
