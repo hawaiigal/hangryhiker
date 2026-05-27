@@ -14,6 +14,7 @@ import {
 } from '../utils/exportImport'
 import type { AnyExport, DedupStrategy, ImportPreview } from '../utils/exportImport'
 import { ImportModal } from '../components/ImportModal'
+import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -90,7 +91,7 @@ export function Dashboard() {
       <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImportFile} />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm">Export ▾</Button>
+          <Button variant="outline" size="sm">Export <ChevronDown className="w-3.5 h-3.5" /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[210px]">
           <DropdownMenuItem onClick={handleExportBackup}>
