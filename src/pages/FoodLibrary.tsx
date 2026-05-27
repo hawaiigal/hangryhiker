@@ -10,7 +10,7 @@ import { PageHeader } from '../components/PageHeader'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import type { FoodItem } from '../types'
 
-type SortKey = 'name' | 'density'
+type SortKey = 'name' | 'serving' | 'calories' | 'density' | 'carbs' | 'fiber' | 'protein' | 'fat' | 'sodium'
 type SortDir = 'asc' | 'desc'
 
 // undefined = form closed; null = adding new; FoodItem = editing existing
@@ -36,12 +36,19 @@ export function FoodLibrary() {
       : allItems
 
     return [...filtered].sort((a, b) => {
-      const av = sortKey === 'name'
-        ? a.name.toLowerCase()
-        : calDensity(a.calories, a.servingSizeG, weightUnit)
-      const bv = sortKey === 'name'
-        ? b.name.toLowerCase()
-        : calDensity(b.calories, b.servingSizeG, weightUnit)
+      let av: string | number
+      let bv: string | number
+      switch (sortKey) {
+        case 'name':    av = a.name.toLowerCase(); bv = b.name.toLowerCase(); break
+        case 'serving': av = a.servingSizeG;        bv = b.servingSizeG;        break
+        case 'calories': av = a.calories;           bv = b.calories;            break
+        case 'density': av = calDensity(a.calories, a.servingSizeG, weightUnit); bv = calDensity(b.calories, b.servingSizeG, weightUnit); break
+        case 'carbs':   av = a.carbs;               bv = b.carbs;               break
+        case 'fiber':   av = a.fiber;               bv = b.fiber;               break
+        case 'protein': av = a.protein;             bv = b.protein;             break
+        case 'fat':     av = a.fat;                 bv = b.fat;                 break
+        case 'sodium':  av = a.sodium;              bv = b.sodium;              break
+      }
       if (av < bv) return sortDir === 'asc' ? -1 : 1
       if (av > bv) return sortDir === 'asc' ? 1 : -1
       return 0
@@ -53,7 +60,7 @@ export function FoodLibrary() {
       setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
     } else {
       setSortKey(key)
-      setSortDir(key === 'density' ? 'desc' : 'asc')
+      setSortDir(key === 'name' ? 'asc' : 'desc')
     }
   }
 
@@ -62,11 +69,11 @@ export function FoodLibrary() {
   }
 
   function sortIndicator(key: SortKey) {
-    if (sortKey !== key) return null
+    if (sortKey !== key) return <span className="ml-1 opacity-0 group-hover:opacity-30">↕</span>
     return <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>
   }
 
-  const thCls = 'pb-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide'
+  const thCls = 'pb-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide cursor-pointer hover:text-gray-800 select-none group'
   const tdCls = 'py-3 pr-4 text-sm text-gray-600'
 
   return (
@@ -90,26 +97,34 @@ export function FoodLibrary() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200">
-              <th
-                className={`${thCls} pr-4 cursor-pointer hover:text-gray-800`}
-                onClick={() => toggleSort('name')}
-              >
+              <th className={`${thCls} pr-4`} onClick={() => toggleSort('name')}>
                 Name {sortIndicator('name')}
               </th>
-              <th className={`${thCls} pr-4 hidden sm:table-cell`}>Serving</th>
-              <th className={`${thCls} pr-4`}>Cal</th>
-              <th
-                className={`${thCls} pr-4 cursor-pointer hover:text-gray-800`}
-                onClick={() => toggleSort('density')}
-              >
+              <th className={`${thCls} pr-4 hidden sm:table-cell`} onClick={() => toggleSort('serving')}>
+                Serving {sortIndicator('serving')}
+              </th>
+              <th className={`${thCls} pr-4`} onClick={() => toggleSort('calories')}>
+                Cal {sortIndicator('calories')}
+              </th>
+              <th className={`${thCls} pr-4`} onClick={() => toggleSort('density')}>
                 {densityLabel(weightUnit)} {sortIndicator('density')}
               </th>
-              <th className={`${thCls} pr-4 hidden md:table-cell`}>Carbs</th>
-              <th className={`${thCls} pr-4 hidden md:table-cell`}>Fiber</th>
-              <th className={`${thCls} pr-4 hidden md:table-cell`}>Protein</th>
-              <th className={`${thCls} pr-4 hidden md:table-cell`}>Fat</th>
-              <th className={`${thCls} hidden lg:table-cell`}>Sodium</th>
-              <th className={thCls} />
+              <th className={`${thCls} pr-4 hidden md:table-cell`} onClick={() => toggleSort('carbs')}>
+                Carbs {sortIndicator('carbs')}
+              </th>
+              <th className={`${thCls} pr-4 hidden md:table-cell`} onClick={() => toggleSort('fiber')}>
+                Fiber {sortIndicator('fiber')}
+              </th>
+              <th className={`${thCls} pr-4 hidden md:table-cell`} onClick={() => toggleSort('protein')}>
+                Protein {sortIndicator('protein')}
+              </th>
+              <th className={`${thCls} pr-4 hidden md:table-cell`} onClick={() => toggleSort('fat')}>
+                Fat {sortIndicator('fat')}
+              </th>
+              <th className={`${thCls} hidden lg:table-cell`} onClick={() => toggleSort('sodium')}>
+                Sodium {sortIndicator('sodium')}
+              </th>
+              <th className="pb-3" />
             </tr>
           </thead>
           <tbody>
