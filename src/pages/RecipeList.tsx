@@ -6,12 +6,14 @@ import { computeIngredientTotals } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { PageHeader } from '../components/PageHeader'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import type { FoodItem } from '../types'
 
 export function RecipeList() {
   const { weightUnit } = useSettingsStore()
+  const [search, setSearch] = useState('')
   const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null)
   const recipes = useLiveQuery(() => db.recipes.toArray(), [])
   const allFoodItems = useLiveQuery(() => db.foodItems.toArray(), [])
@@ -20,6 +22,13 @@ export function RecipeList() {
     if (!allFoodItems) return new Map<number, FoodItem>()
     return new Map(allFoodItems.map(f => [f.id!, f]))
   }, [allFoodItems])
+
+  const filteredRecipes = useMemo(() => {
+    if (!recipes) return []
+    const q = search.toLowerCase().trim()
+    if (!q) return recipes
+    return recipes.filter(r => r.name.toLowerCase().includes(q))
+  }, [recipes, search])
 
   async function handleDeleteConfirm() {
     if (pendingDelete) await db.recipes.delete(pendingDelete.id)
@@ -36,6 +45,14 @@ export function RecipeList() {
         }
       />
 
+      <Input
+        type="search"
+        placeholder="Search recipes..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        className="mb-6"
+      />
+
       {recipes && recipes.length === 0 && (
         <div className="py-16 text-center text-gray-400 text-sm">
           No recipes yet.{' '}
@@ -45,8 +62,14 @@ export function RecipeList() {
         </div>
       )}
 
+      {recipes && recipes.length > 0 && filteredRecipes.length === 0 && (
+        <div className="py-16 text-center text-gray-400 text-sm">
+          No recipes match your search.
+        </div>
+      )}
+
       <div className="space-y-3">
-        {recipes?.map(recipe => {
+        {filteredRecipes.map(recipe => {
           const totals = computeIngredientTotals(recipe.ingredients, foodMap)
           return (
             <div
