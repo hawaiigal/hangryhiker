@@ -8,6 +8,28 @@ export function About() {
         shopping list, all stored locally in your browser with no account required.
       </p>
 
+      <p className="text-gray-600 text-sm mb-6">
+        Found a bug or have a feature idea?{' '}
+        <a
+          href="https://github.com/hawaiigal/hangryhiker/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand-600 hover:underline"
+        >
+          Open an issue
+        </a>{' '}
+        or{' '}
+        <a
+          href="https://github.com/hawaiigal/hangryhiker/pulls"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand-600 hover:underline"
+        >
+          submit a pull request
+        </a>{' '}
+        on GitHub.
+      </p>
+
       <div className="space-y-3 text-sm">
         <div className="flex items-center gap-2">
           <GitHubIcon />
