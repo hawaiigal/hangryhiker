@@ -7,6 +7,10 @@ import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
 import { FoodSearch } from '../components/FoodSearch'
 import { FoodItemForm } from '../components/FoodItemForm'
+import { ServingsInput } from '../components/ServingsInput'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import type { FoodItem, RecipeIngredient } from '../types'
 
 export function RecipeEditor() {
@@ -61,13 +65,12 @@ export function RecipeEditor() {
     })
   }
 
-  function setQuantity(foodItemId: number, raw: string) {
-    const qty = parseFloat(raw)
-    if (isNaN(qty) || qty <= 0) {
+  function setQuantity(foodItemId: number, value: number) {
+    if (value <= 0) {
       setIngredients(prev => prev.filter(i => i.foodItemId !== foodItemId))
     } else {
       setIngredients(prev =>
-        prev.map(i => (i.foodItemId === foodItemId ? { ...i, quantity: qty } : i)),
+        prev.map(i => (i.foodItemId === foodItemId ? { ...i, quantity: value } : i)),
       )
     }
   }
@@ -91,39 +94,31 @@ export function RecipeEditor() {
     navigate(returnTo)
   }
 
-  // Show nothing while loading an existing recipe
   if (!isNew && !initialized) return null
-
-  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600'
 
   return (
     <>
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link to={returnTo} className="text-gray-400 hover:text-gray-600 text-sm">
-          ←
-        </Link>
+        <Link to={returnTo} className="text-gray-400 hover:text-gray-600 text-sm">←</Link>
         <h1 className="text-2xl font-semibold text-gray-900">
           {isNew ? 'New recipe' : 'Edit recipe'}
         </h1>
       </div>
 
-      {/* Recipe name + servings */}
       <div className="mb-6 flex gap-4">
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Recipe name *</label>
-          <input
-            className={inputCls}
+        <div className="flex-1 space-y-1">
+          <Label>Recipe name *</Label>
+          <Input
             value={name}
             onChange={e => { setName(e.target.value); setNameError('') }}
             placeholder="e.g. Backcountry Mac & Cheese"
           />
           {nameError && <p className="text-sm text-red-600 mt-1">{nameError}</p>}
         </div>
-        <div className="w-32 shrink-0">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Servings</label>
-          <input
-            className={inputCls}
+        <div className="w-32 shrink-0 space-y-1">
+          <Label>Servings</Label>
+          <Input
             type="number"
             min="0.5"
             step="0.5"
@@ -136,9 +131,8 @@ export function RecipeEditor() {
         </div>
       </div>
 
-      {/* Ingredient picker */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Add ingredients</label>
+      <div className="mb-6 space-y-1">
+        <Label>Add ingredients</Label>
         <FoodSearch
           allFoodItems={allFoodItems ?? []}
           weightUnit={weightUnit}
@@ -147,7 +141,6 @@ export function RecipeEditor() {
         />
       </div>
 
-      {/* Ingredient list */}
       {ingredients.length > 0 && (
         <div className="mb-6">
           <h2 className="text-sm font-medium text-gray-700 mb-2">
@@ -164,40 +157,17 @@ export function RecipeEditor() {
                 >
                   <div className="flex-1 min-w-0">
                     <button
-                    type="button"
-                    onClick={() => setEditingFood(food)}
-                    className="font-medium text-gray-900 text-sm truncate text-left hover:text-brand-600 hover:underline"
-                  >
-                    {food.name}
-                  </button>
+                      type="button"
+                      onClick={() => setEditingFood(food)}
+                      className="font-medium text-gray-900 text-sm truncate text-left hover:text-brand-600 hover:underline"
+                    >
+                      {food.name}
+                    </button>
                     <div className="text-xs text-gray-400">
                       {formatWeight(food.servingSizeG * quantity, weightUnit)} · {Math.round(food.calories * quantity)} cal
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(foodItemId, String(quantity - 0.5))}
-                      className="w-7 h-7 flex items-center justify-center rounded border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm"
-                    >
-                      −
-                    </button>
-                    <input
-                      type="number"
-                      min="0.5"
-                      step="0.5"
-                      value={quantity}
-                      onChange={e => setQuantity(foodItemId, e.target.value)}
-                      className="w-14 text-center border border-gray-300 rounded px-1 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setQuantity(foodItemId, String(quantity + 0.5))}
-                      className="w-7 h-7 flex items-center justify-center rounded border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm"
-                    >
-                      +
-                    </button>
-                  </div>
+                  <ServingsInput value={quantity} onChange={v => setQuantity(foodItemId, v)} />
                   <span className="text-xs text-gray-400 shrink-0 hidden sm:block">
                     serving{quantity !== 1 ? 's' : ''}
                   </span>
@@ -216,34 +186,23 @@ export function RecipeEditor() {
         </div>
       )}
 
-      {/* Totals */}
       {ingredients.length > 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 mb-6">
           <div className="flex items-baseline justify-between mb-2">
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-              Per serving
-            </p>
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Per serving</p>
             <p className="text-xs text-gray-400">of {servings}</p>
           </div>
           <NutritionSummary totals={scaleTotals(totals, servings > 0 ? 1 / servings : 0)} weightUnit={weightUnit} />
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex gap-3">
-        <Link
-          to={returnTo}
-          className="flex-1 text-center border border-gray-300 text-gray-700 rounded-lg py-2 text-sm hover:bg-gray-50"
-        >
-          Cancel
-        </Link>
-        <button
-          type="button"
-          onClick={handleSave}
-          className="flex-1 bg-brand-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-brand-700"
-        >
+        <Button variant="outline" asChild className="flex-1">
+          <Link to={returnTo}>Cancel</Link>
+        </Button>
+        <Button onClick={handleSave} className="flex-1">
           {isNew ? 'Save recipe' : 'Save changes'}
-        </button>
+        </Button>
       </div>
     </div>
     {editingFood && (

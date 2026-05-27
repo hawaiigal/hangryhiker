@@ -4,6 +4,8 @@ import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
 import { computeTripTotals, formatWeight } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
+import { Button } from '@/components/ui/button'
+import { PageHeader } from '../components/PageHeader'
 import type { FoodItem, Recipe } from '../types'
 
 export function TripList() {
@@ -30,15 +32,14 @@ export function TripList() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Trips</h1>
-        <Link
-          to="/trips/new"
-          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
-        >
-          + New trip
-        </Link>
-      </div>
+      <PageHeader
+        title="Trips"
+        action={
+          <Button asChild>
+            <Link to="/trips/new">+ New trip</Link>
+          </Button>
+        }
+      />
 
       {trips && trips.length === 0 && (
         <div className="py-16 text-center text-gray-400 text-sm">
@@ -90,10 +91,7 @@ export function TripList() {
                   )}
                 </div>
                 <div className="flex gap-3 text-sm shrink-0">
-                  <Link
-                    to={`/trips/${trip.id}`}
-                    className="text-gray-400 hover:text-brand-600"
-                  >
+                  <Link to={`/trips/${trip.id}`} className="text-gray-400 hover:text-brand-600">
                     Open
                   </Link>
                   <button

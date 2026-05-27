@@ -5,6 +5,8 @@ import { useSettingsStore } from '../store/settingsStore'
 import { computeIngredientTotals } from '../utils/nutrition'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
+import { Button } from '@/components/ui/button'
+import { PageHeader } from '../components/PageHeader'
 import type { FoodItem } from '../types'
 
 export function RecipeList() {
@@ -25,15 +27,14 @@ export function RecipeList() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Recipes</h1>
-        <Link
-          to="/recipes/new"
-          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700"
-        >
-          + New recipe
-        </Link>
-      </div>
+      <PageHeader
+        title="Recipes"
+        action={
+          <Button asChild>
+            <Link to="/recipes/new">+ New recipe</Link>
+          </Button>
+        }
+      />
 
       {recipes && recipes.length === 0 && (
         <div className="py-16 text-center text-gray-400 text-sm">
@@ -61,10 +62,7 @@ export function RecipeList() {
                   <NutritionSummary totals={totals} weightUnit={weightUnit} compact />
                 </div>
                 <div className="flex gap-3 text-sm shrink-0">
-                  <Link
-                    to={`/recipes/${recipe.id}`}
-                    className="text-gray-400 hover:text-brand-600"
-                  >
+                  <Link to={`/recipes/${recipe.id}`} className="text-gray-400 hover:text-brand-600">
                     Edit
                   </Link>
                   <button

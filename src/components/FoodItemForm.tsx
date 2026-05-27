@@ -1,4 +1,13 @@
 import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
 import { gToOz, ozToG } from '../utils/nutrition'
@@ -153,139 +162,119 @@ export function FoodItemForm({ item, onClose, onSaved }: Props) {
     onClose()
   }
 
-  const inputCls = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600'
-  const labelCls = 'block text-sm font-medium text-gray-700 mb-1'
-
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
-    >
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-5">
-            {item ? 'Edit Food Item' : 'Add Food Item'}
-          </h2>
+    <Dialog open onOpenChange={open => { if (!open) onClose() }}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{item ? 'Edit Food Item' : 'Add Food Item'}</DialogTitle>
+        </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!item && (
-              <>
-                <FdcSearch onSelect={handleFdcSelect} />
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 border-t border-gray-200" />
-                  <span className="text-xs text-gray-400">or</span>
-                  <div className="flex-1 border-t border-gray-200" />
-                </div>
-                <NutritionScanner onScan={handleScan} />
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 border-t border-gray-200" />
-                  <span className="text-xs text-gray-400">or enter manually</span>
-                  <div className="flex-1 border-t border-gray-200" />
-                </div>
-              </>
-            )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!item && (
+            <>
+              <FdcSearch onSelect={handleFdcSelect} />
+              <div className="flex items-center gap-3">
+                <div className="flex-1 border-t border-gray-200" />
+                <span className="text-xs text-gray-400">or</span>
+                <div className="flex-1 border-t border-gray-200" />
+              </div>
+              <NutritionScanner onScan={handleScan} />
+              <div className="flex items-center gap-3">
+                <div className="flex-1 border-t border-gray-200" />
+                <span className="text-xs text-gray-400">or enter manually</span>
+                <div className="flex-1 border-t border-gray-200" />
+              </div>
+            </>
+          )}
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>Name *</label>
-                <input className={inputCls} value={form.name} onChange={field('name')} placeholder="e.g. Instant Oatmeal" />
-              </div>
-              <div className="col-span-2 sm:col-span-1">
-                <label className={labelCls}>Brand</label>
-                <input className={inputCls} value={form.brand} onChange={field('brand')} placeholder="e.g. Quaker" />
-              </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 sm:col-span-1 space-y-1">
+              <Label>Name *</Label>
+              <Input value={form.name} onChange={field('name')} placeholder="e.g. Instant Oatmeal" />
             </div>
+            <div className="col-span-2 sm:col-span-1 space-y-1">
+              <Label>Brand</Label>
+              <Input value={form.brand} onChange={field('brand')} placeholder="e.g. Quaker" />
+            </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Serving size</label>
-                <div className="flex gap-2">
-                  <input
-                    className={inputCls}
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={form.servingAmount}
-                    onChange={field('servingAmount')}
-                    placeholder="e.g. 43"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleUnitToggle}
-                    className="shrink-0 w-14 border border-gray-300 rounded-lg text-sm font-mono font-medium text-gray-700 hover:bg-gray-50"
-                  >
-                    {form.servingUnit}
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className={labelCls}>Servings per container</label>
-                <input
-                  className={inputCls}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label>Serving size</Label>
+              <div className="flex gap-2">
+                <Input
                   type="number"
-                  min="0.5"
-                  step="0.5"
-                  value={form.servingsPerContainer}
-                  onChange={field('servingsPerContainer')}
-                  placeholder="e.g. 3"
+                  min="0"
+                  step="any"
+                  value={form.servingAmount}
+                  onChange={field('servingAmount')}
+                  placeholder="e.g. 43"
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleUnitToggle}
+                  className="shrink-0 w-14 font-mono"
+                >
+                  {form.servingUnit}
+                </Button>
               </div>
             </div>
+            <div className="space-y-1">
+              <Label>Servings per container</Label>
+              <Input
+                type="number"
+                min="0.5"
+                step="0.5"
+                value={form.servingsPerContainer}
+                onChange={field('servingsPerContainer')}
+                placeholder="e.g. 3"
+              />
+            </div>
+          </div>
 
-            <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Nutrition per serving</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <label className={labelCls}>Calories</label>
-                  <input className={inputCls} type="number" min="0" step="any" value={form.calories} onChange={field('calories')} placeholder="0" />
-                </div>
-                <div>
-                  <label className={labelCls}>Fat (g)</label>
-                  <input className={inputCls} type="number" min="0" step="any" value={form.fat} onChange={field('fat')} placeholder="0" />
-                </div>
-                <div>
-                  <label className={labelCls}>Carbs (g)</label>
-                  <input className={inputCls} type="number" min="0" step="any" value={form.carbs} onChange={field('carbs')} placeholder="0" />
-                </div>
-                <div>
-                  <label className={labelCls}>Fiber (g)</label>
-                  <input className={inputCls} type="number" min="0" step="any" value={form.fiber} onChange={field('fiber')} placeholder="0" />
-                </div>
-                <div>
-                  <label className={labelCls}>Added Sugars (g)</label>
-                  <input className={inputCls} type="number" min="0" step="any" value={form.addedSugars} onChange={field('addedSugars')} placeholder="optional" />
-                </div>
-                <div>
-                  <label className={labelCls}>Protein (g)</label>
-                  <input className={inputCls} type="number" min="0" step="any" value={form.protein} onChange={field('protein')} placeholder="0" />
-                </div>
-                <div className="col-span-2">
-                  <label className={labelCls}>Sodium (mg)</label>
-                  <input className={inputCls} type="number" min="0" step="any" value={form.sodium} onChange={field('sodium')} placeholder="0" />
-                </div>
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Nutrition per serving</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="col-span-2 space-y-1">
+                <Label>Calories</Label>
+                <Input type="number" min="0" step="any" value={form.calories} onChange={field('calories')} placeholder="0" />
+              </div>
+              <div className="space-y-1">
+                <Label>Fat (g)</Label>
+                <Input type="number" min="0" step="any" value={form.fat} onChange={field('fat')} placeholder="0" />
+              </div>
+              <div className="space-y-1">
+                <Label>Carbs (g)</Label>
+                <Input type="number" min="0" step="any" value={form.carbs} onChange={field('carbs')} placeholder="0" />
+              </div>
+              <div className="space-y-1">
+                <Label>Fiber (g)</Label>
+                <Input type="number" min="0" step="any" value={form.fiber} onChange={field('fiber')} placeholder="0" />
+              </div>
+              <div className="space-y-1">
+                <Label>Added Sugars (g)</Label>
+                <Input type="number" min="0" step="any" value={form.addedSugars} onChange={field('addedSugars')} placeholder="optional" />
+              </div>
+              <div className="space-y-1">
+                <Label>Protein (g)</Label>
+                <Input type="number" min="0" step="any" value={form.protein} onChange={field('protein')} placeholder="0" />
+              </div>
+              <div className="col-span-2 space-y-1">
+                <Label>Sodium (mg)</Label>
+                <Input type="number" min="0" step="any" value={form.sodium} onChange={field('sodium')} placeholder="0" />
               </div>
             </div>
+          </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600">{error}</p>}
 
-            <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 border border-gray-300 text-gray-700 rounded-lg py-2 text-sm hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 bg-brand-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-brand-700"
-              >
-                {item ? 'Save changes' : 'Add food item'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancel</Button>
+            <Button type="submit" className="flex-1">{item ? 'Save changes' : 'Add food item'}</Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

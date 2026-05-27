@@ -8,6 +8,7 @@ import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
 import { MealSection } from '../components/MealSection'
 import { buildTripExport, downloadTripExport } from '../utils/exportImport'
+import { Button } from '@/components/ui/button'
 import type { FoodItem, MealItem, MealType, NutritionTotals, Recipe, Trip, TripDay } from '../types'
 
 // ── Reducer ────────────────────────────────────────────────────────────────
@@ -192,18 +193,8 @@ export function TripEditor() {
             <span className="text-xs text-gray-400">
               {saveStatus === 'saving' ? 'Saving…' : saveStatus === 'saved' ? 'Saved ✓' : ''}
             </span>
-            <button
-              onClick={handleExport}
-              className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1 rounded-lg"
-            >
-              Export JSON
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 hover:border-gray-300 px-2.5 py-1 rounded-lg"
-            >
-              Print PDF
-            </button>
+            <Button variant="outline" size="xs" onClick={handleExport}>Export JSON</Button>
+            <Button variant="outline" size="xs" onClick={() => window.print()}>Print PDF</Button>
           </div>
         </div>
 

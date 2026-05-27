@@ -1,5 +1,6 @@
 import { Routes, Route, NavLink, Link } from 'react-router'
 import { useSettingsStore } from './store/settingsStore'
+import { Button } from '@/components/ui/button'
 import { Dashboard } from './pages/Dashboard'
 import { FoodLibrary } from './pages/FoodLibrary'
 import { RecipeList } from './pages/RecipeList'
@@ -26,12 +27,14 @@ function App() {
           <NavLink to="/food" className={navLink}>Food Library</NavLink>
           <NavLink to="/recipes" className={navLink}>Recipes</NavLink>
           <NavLink to="/trips" className={navLink}>Trips</NavLink>
-          <button
+          <Button
+            variant="secondary"
+            size="xs"
             onClick={() => setWeightUnit(weightUnit === 'oz' ? 'g' : 'oz')}
-            className="bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded font-mono text-gray-700"
+            className="font-mono"
           >
             {weightUnit}
-          </button>
+          </Button>
         </div>
       </nav>
 
