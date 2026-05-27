@@ -2,12 +2,13 @@ import { useReducer, useState, useEffect, useMemo, useRef } from 'react'
 import { useParams, Link } from 'react-router'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
-import { computeMealTotals, computeTripTotals, computeTripShoppingList, addTotals, emptyTotals, formatWeight } from '../utils/nutrition'
+import { computeMealTotals, computeTripTotals, computeTripShoppingList, addTotals, emptyTotals, formatWeight, formatVolume } from '../utils/nutrition'
 import { MEAL_TYPES, MEAL_LABELS, createEmptyDays } from '../utils/trip'
 import { useLiveQuery } from '../hooks/useLiveQuery'
 import { NutritionSummary } from '../components/NutritionSummary'
 import { MealSection } from '../components/MealSection'
 import { buildTripExport, downloadTripExport } from '../utils/exportImport'
+import { PACKAGE_UNITS } from '../components/FoodItemForm'
 import { Button } from '@/components/ui/button'
 import type { FoodItem, MealItem, MealType, NutritionTotals, Recipe, Trip, TripDay } from '../types'
 
@@ -135,6 +136,27 @@ export function TripEditor() {
     () => initialized ? computeTripTotals({ name: state.name, days: state.days }, foodMap, recipeMap) : emptyTotals(),
     [state, foodMap, recipeMap, initialized],
   )
+
+  function packageLabel(count: number, unit: string): string {
+    const def = PACKAGE_UNITS.find(u => u.value === unit)
+    if (!def) return `${count} ${unit}`
+    return `${count} ${count === 1 ? def.singular : def.plural}`
+  }
+
+  function isVolume(food: { servingUnit?: string }): boolean {
+    return food.servingUnit === 'ml' || food.servingUnit === 'floz'
+  }
+
+  function sizeHint(food: { servingSizeG: number; servingsPerContainer?: number; servingUnit?: string }): string {
+    const spc = food.servingsPerContainer ?? 1
+    const size = food.servingSizeG * spc
+    return isVolume(food) ? formatVolume(size, weightUnit) : formatWeight(size, weightUnit)
+  }
+
+  function totalSizeHint(food: { servingSizeG: number; servingUnit?: string }, totalServings: number): string {
+    const size = food.servingSizeG * totalServings
+    return isVolume(food) ? formatVolume(size, weightUnit) : formatWeight(size, weightUnit)
+  }
 
   const shoppingList = useMemo(
     () => initialized
@@ -291,7 +313,7 @@ export function TripEditor() {
               {[...shoppingList.entries()].map(([foodId, totalServings]) => {
                 const food = foodMap.get(foodId)
                 if (!food) return null
-                const boxes = food.servingsPerContainer != null
+                const count = food.servingsPerContainer != null
                   ? Math.ceil(totalServings / food.servingsPerContainer)
                   : null
                 return (
@@ -303,13 +325,15 @@ export function TripEditor() {
                       )}
                     </div>
                     <div className="shrink-0 text-right">
-                      {boxes != null ? (
-                        <span className="font-semibold text-gray-900">{boxes} box{boxes !== 1 ? 'es' : ''}</span>
+                      {count != null ? (
+                        <>
+                          <span className="font-semibold text-gray-900">
+                            {packageLabel(count, food.packageUnit ?? 'box')}
+                          </span>
+                          <span className="text-gray-400 text-xs ml-1.5">({sizeHint(food)} each)</span>
+                        </>
                       ) : (
-                        <span className="text-gray-500">{totalServings} serving{totalServings !== 1 ? 's' : ''}</span>
-                      )}
-                      {food.servingsPerContainer != null && (
-                        <span className="text-gray-400 text-xs ml-1.5">({totalServings} srv)</span>
+                        <span className="font-semibold text-gray-900">{totalSizeHint(food, totalServings)}</span>
                       )}
                     </div>
                   </div>
@@ -405,7 +429,7 @@ export function TripEditor() {
             {[...shoppingList.entries()].map(([foodId, totalServings]) => {
               const food = foodMap.get(foodId)
               if (!food) return null
-              const boxes = food.servingsPerContainer != null
+              const count = food.servingsPerContainer != null
                 ? Math.ceil(totalServings / food.servingsPerContainer)
                 : null
               return (
@@ -415,9 +439,9 @@ export function TripEditor() {
                     {food.brand && <span className="text-gray-400 text-xs ml-1">{food.brand}</span>}
                   </span>
                   <span className="text-gray-600 ml-4 shrink-0">
-                    {boxes != null
-                      ? `${boxes} box${boxes !== 1 ? 'es' : ''} (${totalServings} srv)`
-                      : `${totalServings} serving${totalServings !== 1 ? 's' : ''}`}
+                    {count != null
+                      ? `${packageLabel(count, food.packageUnit ?? 'box')} (${sizeHint(food)} each)`
+                      : totalSizeHint(food, totalServings)}
                   </span>
                 </div>
               )

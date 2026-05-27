@@ -23,4 +23,16 @@ db.version(2).stores({
   })
 )
 
+db.version(3).stores({
+  foodItems: '++id, name, brand',
+  recipes: '++id, name',
+  trips: '++id, name',
+}).upgrade(tx =>
+  tx.table('foodItems').toCollection().modify(item => {
+    if (item.servingsPerContainer != null && item.packageUnit == null) {
+      item.packageUnit = 'box'
+    }
+  })
+)
+
 export { db }

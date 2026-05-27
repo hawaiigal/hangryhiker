@@ -1,11 +1,17 @@
 export type WeightUnit = 'g' | 'oz'
 
+export type PackageUnit = 'box' | 'bag' | 'can' | 'bottle' | 'jar' | 'pouch' | 'pack' | 'each'
+
+export type ServingUnit = 'g' | 'oz' | 'ml' | 'floz'
+
 export interface FoodItem {
   id?: number
   name: string
   brand?: string
-  servingSizeG: number  // always stored in grams
+  servingSizeG: number     // grams for weight items; ml for volume items (1ml ≈ 1g assumed)
+  servingUnit?: ServingUnit // undefined = 'g' for backward compat
   servingsPerContainer?: number
+  packageUnit?: PackageUnit
   calories: number
   carbs: number
   fiber: number

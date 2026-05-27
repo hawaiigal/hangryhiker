@@ -123,6 +123,21 @@ export function formatWeight(grams: number, unit: 'g' | 'oz'): string {
   return `${grams.toFixed(1)} g`
 }
 
+const ML_PER_FLOZ = 29.5735
+
+export function mlToFloz(ml: number): number {
+  return ml / ML_PER_FLOZ
+}
+
+export function flozToMl(floz: number): number {
+  return floz * ML_PER_FLOZ
+}
+
+export function formatVolume(ml: number, unit: 'g' | 'oz'): string {
+  if (unit === 'oz') return `${mlToFloz(ml).toFixed(1)} fl oz`
+  return `${Math.round(ml)} ml`
+}
+
 export function calPerG(calories: number, servingSizeG: number): number {
   if (servingSizeG === 0) return 0
   return calories / servingSizeG

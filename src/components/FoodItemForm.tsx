@@ -10,8 +10,21 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { db } from '../db'
 import { useSettingsStore } from '../store/settingsStore'
-import { gToOz, ozToG } from '../utils/nutrition'
-import type { FoodItem, WeightUnit } from '../types'
+import { gToOz, ozToG, mlToFloz, flozToMl } from '../utils/nutrition'
+import type { FoodItem, PackageUnit, ServingUnit, WeightUnit } from '../types'
+
+const PACKAGE_UNITS: { value: PackageUnit; singular: string; plural: string }[] = [
+  { value: 'box',    singular: 'box',    plural: 'boxes'   },
+  { value: 'bag',    singular: 'bag',    plural: 'bags'    },
+  { value: 'can',    singular: 'can',    plural: 'cans'    },
+  { value: 'bottle', singular: 'bottle', plural: 'bottles' },
+  { value: 'jar',    singular: 'jar',    plural: 'jars'    },
+  { value: 'pouch',  singular: 'pouch',  plural: 'pouches' },
+  { value: 'pack',   singular: 'pack',   plural: 'packs'   },
+  { value: 'each',   singular: 'each',   plural: 'each'    },
+]
+
+export { PACKAGE_UNITS }
 import { FdcSearch } from './FdcSearch'
 import { NutritionScanner } from './NutritionScanner'
 import type { ParsedNutrition } from '../utils/parseNutritionLabel'
@@ -26,8 +39,9 @@ interface FormState {
   name: string
   brand: string
   servingAmount: string
-  servingUnit: WeightUnit
+  servingUnit: ServingUnit
   servingsPerContainer: string
+  packageUnit: PackageUnit
   calories: string
   fat: string
   carbs: string
@@ -37,23 +51,33 @@ interface FormState {
   sodium: string
 }
 
+function defaultServingUnit(weightUnit: WeightUnit): ServingUnit {
+  return weightUnit === 'oz' ? 'oz' : 'g'
+}
+
 function initialState(item: FoodItem | undefined, defaultUnit: WeightUnit): FormState {
   if (!item) {
     return {
-      name: '', brand: '', servingAmount: '', servingUnit: defaultUnit,
-      servingsPerContainer: '',
+      name: '', brand: '', servingAmount: '', servingUnit: defaultServingUnit(defaultUnit),
+      servingsPerContainer: '', packageUnit: 'box' as PackageUnit,
       calories: '', fat: '', carbs: '', fiber: '', addedSugars: '', protein: '', sodium: '',
     }
   }
-  const servingAmount = defaultUnit === 'oz'
-    ? gToOz(item.servingSizeG).toFixed(2)
-    : item.servingSizeG.toFixed(1)
+  const unit: ServingUnit = item.servingUnit ?? defaultServingUnit(defaultUnit)
+  let servingAmount: string
+  switch (unit) {
+    case 'oz':   servingAmount = gToOz(item.servingSizeG).toFixed(2); break
+    case 'ml':   servingAmount = String(Math.round(item.servingSizeG)); break
+    case 'floz': servingAmount = mlToFloz(item.servingSizeG).toFixed(1); break
+    default:     servingAmount = item.servingSizeG.toFixed(1)
+  }
   return {
     name: item.name,
     brand: item.brand ?? '',
     servingAmount,
-    servingUnit: defaultUnit,
+    servingUnit: unit,
     servingsPerContainer: item.servingsPerContainer != null ? String(item.servingsPerContainer) : '',
+    packageUnit: item.packageUnit ?? 'box',
     calories: String(item.calories),
     fat: String(item.fat),
     carbs: String(item.carbs),
@@ -80,6 +104,7 @@ export function FoodItemForm({ item, onClose, onSaved }: Props) {
       if (data.protein != null) next.protein = String(data.protein)
       if (data.sodium != null) next.sodium = String(data.sodium)
       if (data.servingsPerContainer != null) next.servingsPerContainer = String(data.servingsPerContainer)
+      // keep existing packageUnit when scanning — user picks it manually
       if (data.servingSizeG != null) {
         next.servingAmount = weightUnit === 'oz'
           ? gToOz(data.servingSizeG).toFixed(2)
@@ -98,7 +123,7 @@ export function FoodItemForm({ item, onClose, onSaved }: Props) {
       name: food.name,
       brand: food.brand ?? '',
       servingAmount,
-      servingUnit: weightUnit,
+      servingUnit: food.servingUnit ?? defaultServingUnit(weightUnit),
       calories: String(food.calories),
       fat: String(food.fat),
       carbs: String(food.carbs),
@@ -106,6 +131,7 @@ export function FoodItemForm({ item, onClose, onSaved }: Props) {
       protein: String(food.protein),
       sodium: String(food.sodium),
       servingsPerContainer: food.servingsPerContainer != null ? String(food.servingsPerContainer) : '',
+      packageUnit: food.packageUnit ?? 'box',
       addedSugars: food.addedSugars != null ? String(food.addedSugars) : '',
     })
   }
@@ -115,14 +141,17 @@ export function FoodItemForm({ item, onClose, onSaved }: Props) {
       setForm(prev => ({ ...prev, [key]: e.target.value }))
   }
 
-  function handleUnitToggle() {
-    const newUnit: WeightUnit = form.servingUnit === 'oz' ? 'g' : 'oz'
+  function handleUnitToggle(newUnit: ServingUnit) {
     const amount = parseFloat(form.servingAmount)
-    const newAmount = isNaN(amount)
-      ? ''
-      : newUnit === 'oz'
-        ? gToOz(amount).toFixed(2)
-        : ozToG(amount).toFixed(1)
+    let newAmount = form.servingAmount
+    if (!isNaN(amount)) {
+      const from = form.servingUnit
+      if (from === 'g'    && newUnit === 'oz')   newAmount = gToOz(amount).toFixed(2)
+      if (from === 'oz'   && newUnit === 'g')    newAmount = ozToG(amount).toFixed(1)
+      if (from === 'ml'   && newUnit === 'floz') newAmount = mlToFloz(amount).toFixed(1)
+      if (from === 'floz' && newUnit === 'ml')   newAmount = String(Math.round(flozToMl(amount)))
+      // crossing weight↔volume: keep numeric value, let user adjust
+    }
     setForm(prev => ({ ...prev, servingUnit: newUnit, servingAmount: newAmount }))
   }
 
@@ -134,15 +163,24 @@ export function FoodItemForm({ item, onClose, onSaved }: Props) {
     if (!form.name.trim()) return setError('Name is required.')
     if (isNaN(servingAmount) || servingAmount <= 0) return setError('Serving size must be a positive number.')
 
-    const servingSizeG = form.servingUnit === 'oz' ? ozToG(servingAmount) : servingAmount
+    // Normalize to canonical storage value (grams for weight, ml for volume — 1ml≈1g assumed)
+    let servingSizeG: number
+    switch (form.servingUnit) {
+      case 'oz':   servingSizeG = ozToG(servingAmount); break
+      case 'floz': servingSizeG = flozToMl(servingAmount); break
+      default:     servingSizeG = servingAmount
+    }
 
     const spc = parseFloat(form.servingsPerContainer)
     const addedSugars = parseFloat(form.addedSugars)
+    const hasSpc = !isNaN(spc) && spc > 0
     const data: Omit<FoodItem, 'id'> = {
       name: form.name.trim(),
       brand: form.brand.trim() || undefined,
       servingSizeG,
-      servingsPerContainer: isNaN(spc) || spc <= 0 ? undefined : spc,
+      servingUnit: form.servingUnit,
+      servingsPerContainer: hasSpc ? spc : undefined,
+      packageUnit: hasSpc ? form.packageUnit : undefined,
       calories: parseFloat(form.calories) || 0,
       fat: parseFloat(form.fat) || 0,
       carbs: parseFloat(form.carbs) || 0,
@@ -210,26 +248,40 @@ export function FoodItemForm({ item, onClose, onSaved }: Props) {
                   onChange={field('servingAmount')}
                   placeholder="e.g. 43"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleUnitToggle}
-                  className="shrink-0 w-14 font-mono"
+                <select
+                  value={form.servingUnit}
+                  onChange={e => handleUnitToggle(e.target.value as ServingUnit)}
+                  className="h-9 rounded-md border border-input bg-background px-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-ring"
                 >
-                  {form.servingUnit}
-                </Button>
+                  <option value="g">g</option>
+                  <option value="oz">oz</option>
+                  <option value="ml">ml</option>
+                  <option value="floz">fl oz</option>
+                </select>
               </div>
             </div>
             <div className="space-y-1">
               <Label>Servings per container</Label>
-              <Input
-                type="number"
-                min="0.5"
-                step="0.5"
-                value={form.servingsPerContainer}
-                onChange={field('servingsPerContainer')}
-                placeholder="e.g. 3"
-              />
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  value={form.servingsPerContainer}
+                  onChange={field('servingsPerContainer')}
+                  placeholder="e.g. 3"
+                />
+                <select
+                  value={form.packageUnit}
+                  onChange={e => setForm(prev => ({ ...prev, packageUnit: e.target.value as PackageUnit }))}
+                  disabled={!form.servingsPerContainer}
+                  className="h-9 rounded-md border border-input bg-background px-2 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-40"
+                >
+                  {PACKAGE_UNITS.map(u => (
+                    <option key={u.value} value={u.value}>{u.singular}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
