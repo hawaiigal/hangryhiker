@@ -48,16 +48,30 @@ export function parseNutritionLabel(text: string): ParsedNutrition {
   const proteinMatch = t.match(/\bprotein\s+(\d+\.?\d*)\s*g/i)
   if (proteinMatch) result.protein = parseFloat(proteinMatch[1])
 
-  // Servings per container
-  const spcMatch = t.match(/(\d+\.?\d*)\s+servings?\s+per\s+container/i)
+  // Servings per container — number can appear before ("3 servings per container")
+  // or after ("Servings Per Container 3"), with optional "About" prefix
+  const spcMatch =
+    t.match(/about\s+(\d+\.?\d*)\s+servings?\s+per\s+container/i) ??
+    t.match(/(\d+\.?\d*)\s+servings?\s+per\s+container/i) ??
+    t.match(/servings?\s+per\s+container[:\s]+(?:about\s+)?(\d+\.?\d*)/i)
   if (spcMatch) result.servingsPerContainer = parseFloat(spcMatch[1])
 
-  // Serving size in grams — look for parenthesized (Xg) on the serving size line first
-  const servingLine = t.match(/serving\s+size[^\n]*/i)?.[0] ?? ''
+  // Serving size — flatten up to 100 chars after "Serving Size" so OCR line-breaks
+  // don't split the label from its value. Prefer parenthesized grams (e.g. "(43g)"),
+  // then bare grams, then fall back to oz→g conversion.
+  const servingSizeIdx = t.search(/serving\s+size/i)
+  const servingRegion = servingSizeIdx >= 0
+    ? t.slice(servingSizeIdx, servingSizeIdx + 100).replace(/\n/g, ' ')
+    : ''
   const servingGMatch =
-    servingLine.match(/\(.*?(\d+\.?\d*)\s*g\)/) ??
-    servingLine.match(/(\d+\.?\d*)\s*g/)
-  if (servingGMatch) result.servingSizeG = parseFloat(servingGMatch[1])
+    servingRegion.match(/\(.*?(\d+\.?\d*)\s*g\s*\)/) ??
+    servingRegion.match(/(\d+\.?\d*)\s*g(?!\w)/)
+  if (servingGMatch) {
+    result.servingSizeG = parseFloat(servingGMatch[1])
+  } else {
+    const ozMatch = servingRegion.match(/(\d+\.?\d*)\s*oz(?!\w)/i)
+    if (ozMatch) result.servingSizeG = Math.round(parseFloat(ozMatch[1]) * 28.35)
+  }
 
   return result
 }

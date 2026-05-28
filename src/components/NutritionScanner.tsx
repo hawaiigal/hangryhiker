@@ -34,17 +34,12 @@ export function NutritionScanner({ onScan }: Props) {
       await worker.terminate()
 
       const result = parseNutritionLabel(text)
+      const hasAny = Object.values(result).some(v => v != null)
+      if (hasAny) onScan(result)
       setParsed(result)
       setScanState('done')
     } catch {
       setScanState('error')
-    }
-  }
-
-  function handleApply() {
-    if (parsed) {
-      onScan(parsed)
-      reset()
     }
   }
 
@@ -100,46 +95,24 @@ export function NutritionScanner({ onScan }: Props) {
       )}
 
       {scanState === 'done' && (
-        <div className="border border-gray-200 rounded-lg p-4 space-y-3">
-          <div className="flex items-start gap-3">
-            {previewUrl && (
-              <img src={previewUrl} alt="nutrition label" className="w-14 h-14 object-cover rounded shrink-0" />
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1.5">Scanned values</p>
-              {hasAnyValue ? (
-                <div className="grid grid-cols-3 gap-x-3 gap-y-1 text-xs text-gray-700">
-                  {parsed!.calories != null && <span>Cal: {parsed!.calories}</span>}
-                  {parsed!.fat != null && <span>Fat: {parsed!.fat}g</span>}
-                  {parsed!.carbs != null && <span>Carbs: {parsed!.carbs}g</span>}
-                  {parsed!.fiber != null && <span>Fiber: {parsed!.fiber}g</span>}
-                  {parsed!.protein != null && <span>Protein: {parsed!.protein}g</span>}
-                  {parsed!.sodium != null && <span>Sodium: {parsed!.sodium}mg</span>}
-                  {parsed!.servingSizeG != null && <span>Serving: {parsed!.servingSizeG}g</span>}
-                </div>
-              ) : (
-                <p className="text-xs text-gray-400">No nutrition data found. Try a clearer photo.</p>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={reset}
-              className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-1.5 text-xs hover:bg-gray-50"
-            >
-              Try again
-            </button>
-            {hasAnyValue && (
-              <button
-                type="button"
-                onClick={handleApply}
-                className="flex-1 bg-brand-600 text-white rounded-lg py-1.5 text-xs font-medium hover:bg-brand-700"
-              >
-                Apply values
-              </button>
+        <div className={`border rounded-lg px-3 py-2 flex items-center justify-between gap-3 ${hasAnyValue ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            {hasAnyValue ? (
+              <>
+                <CheckIcon />
+                <span className="text-xs text-green-700 truncate">Nutrition values applied</span>
+              </>
+            ) : (
+              <span className="text-xs text-gray-500">No values found — try a clearer photo.</span>
             )}
           </div>
+          <button
+            type="button"
+            onClick={reset}
+            className="text-xs text-gray-500 hover:text-gray-700 shrink-0 underline"
+          >
+            Rescan
+          </button>
         </div>
       )}
 
@@ -152,6 +125,14 @@ export function NutritionScanner({ onScan }: Props) {
         </div>
       )}
     </div>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg className="w-3.5 h-3.5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+    </svg>
   )
 }
 
